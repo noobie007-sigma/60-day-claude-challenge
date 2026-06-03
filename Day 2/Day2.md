@@ -37,3 +37,11 @@ You only have to give 1 image as an output which follows "Image Requirements" gi
 
 # Engineered Output:
 ![alt text](<Screenshot 2026-06-02 194109.png>)
+
+
+# Key Learnings:
+Provding full context to the AI gives us better outputs. So we must bearkdown each and every detail about the work we want AI to do. We must not let AI assume anything!
+
+
+# Learning Guide: 
+https://www.promptingguide.ai/
