@@ -42,4 +42,7 @@ By assigning the "Tech Product Manager" role, and audience as Marketing stakehol
 ![alt text](image.png)
 
 
+# Resources:
 
+1) https://www.geeksforgeeks.org/artificial-intelligence/role-based-prompting/
+2) https://learnprompting.org/docs/advanced/zero_shot/role_prompting?srsltid=ARcRdnp2kjruYDfuJaffv7pg3K5TkBuT71Ejarwpte2Uwdkf-RxbiqSu
