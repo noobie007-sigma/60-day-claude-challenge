@@ -90,7 +90,8 @@ This challenge demonstrated why Context Engineering is becoming one of the most 
 
 ---
 
-Resources
-anthropic.com/engineering/effective-context-engineering-for-ai-agents
-promptingguide.ai/guides/context-engineering-guide
-langchain.com/blog/context-engineering-for-agents
+# Resources:
+
+1) anthropic.com/engineering/effective-context-engineering-for-ai-agents
+2) promptingguide.ai/guides/context-engineering-guide
+3) langchain.com/blog/context-engineering-for-agents
