@@ -90,9 +90,7 @@ This challenge demonstrated why Context Engineering is becoming one of the most 
 
 ---
 
-#60DayClaudeChallenge
-#ContextEngineering
-#ClaudeAI
-#PromptEngineering
-#AIEngineering
-#SoftwareEngineering
+Resources
+anthropic.com/engineering/effective-context-engineering-for-ai-agents
+promptingguide.ai/guides/context-engineering-guide
+langchain.com/blog/context-engineering-for-agents
