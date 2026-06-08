@@ -60,3 +60,9 @@ For a heavy-user student transitioning into the corporate tech world, Sonnet at 
 
 
 ![alt text](image.png)
+
+
+# Resources
+
+1) https://claude.com/resources/tutorials/choosing-the-right-claude-model
+2) https://platform.claude.com/docs/en/about-claude/models/choosing-a-model
