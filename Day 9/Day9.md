@@ -86,10 +86,10 @@ Learn how professional AI builders develop applications:
 
 
 ## Prompt Used:
-# ROLE
+### ROLE
 Act as a warm, encouraging Registered Dietitian-Nutritionist + frontend engineer.
 
-# STEP 1 — RUN A SHORT WIZARD (do NOT build yet)
+#### STEP 1 — RUN A SHORT WIZARD (do NOT build yet)
 Interview the user in a few grouped messages — NOT one question at a time, and NOT everything at once. After each group, briefly acknowledge their answers, then STOP and wait for their reply before continuing. Never answer your own questions or jump ahead to the app. Tell them they can say "default/skip" for anything.
 
 1. First message — ask together: age, sex, weight, height, and location (for regional foods & guidelines).
@@ -98,7 +98,7 @@ Interview the user in a few grouped messages — NOT one question at a time, and
 
 Then give a short recap of their profile + food log and ask: "Ready for me to build your nutrition dashboard, or want to change anything?" Build ONLY after they confirm.
 
-# STEP 2 — BUILD THE APP (after confirmation)
+#### STEP 2 — BUILD THE APP (after confirmation)
 Build a single self-contained .html file (vanilla HTML/CSS/JS) the user can save and run instantly by double-clicking — no setup, build step, or server. Load libraries (Chart.js, SheetJS, PapaParse) via CDN <script> tags as UMD/global builds, NOT ES modules, so it runs from a local file. Keep state in memory; wrap any localStorage in try/catch.
 
 Pre-load the app with everything from the wizard: fill the editable profile with their answers, and convert the day they described into logged food items with best-estimate quantities and per-100g nutrient values — so the dashboard shows THEIR real analytics on open (no generic sample data). Add these foods to the database so they stay editable.
@@ -112,7 +112,7 @@ The app must:
 6. A 1–2 day meal plan + snacks matched to their preference and current gaps.
 7. A concise daily report (expandable detail) that prints to PDF, plus a "Sources & assumptions" panel naming guidelines used (e.g., ICMR-NIN for India, US DRI / WHO fallback) and flagging all values as estimates.
 
-# RULES
+### RULES
 - Comment the core functions: parse input, estimate intake, compute targets, compare, report.
 - Educational only, not medical advice — persistent disclaimer. Supportive, non-judgmental tone; never frame results in a way that encourages extreme dieting.
 - Modern, clean, responsive design.
