@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AI Tooling Dossier — $50/mo Student Stack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#100D09; --paper:#16120B; --paper-2:#1C170E; --paper-3:#221C12;
+    --line:rgba(217,178,108,.16); --line-soft:rgba(255,248,232,.06);
+    --gold:#D9B26C; --gold-bright:#F0CB82; --gold-deep:#A8843F;
+    --text:#ECE3D1; --muted:#9C9384; --faint:#6E665A; --good:#9BB57A; --warn:#D2A94E; --bad:#C97A63;
+    --serif:'Fraunces',Georgia,serif;
+    --sans:'Inter',system-ui,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    /* categorical, earthy & harmonized */
+    --c-ai:#E0B86A; --c-code:#7BA7D0; --c-search:#B08AC4; --c-prod:#5FB0A6;
+    --c-design:#D08AA0; --c-write:#93B07A; --c-meet:#D2A94E; --c-video:#D08560;
+    --c-auto:#C98F4E; --c-voice:#E6C06A; --c-trans:#8C92C8;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--ink); color:var(--text); font-family:var(--sans);
+    min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+    line-height:1.5; font-size:15px;
+  }
+  body::before{
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:
+      radial-gradient(60% 50% at 12% -5%, rgba(217,178,108,.07), transparent 60%),
+      radial-gradient(55% 45% at 100% 8%, rgba(168,132,63,.06), transparent 60%),
+      repeating-linear-gradient(0deg, transparent 0 39px, rgba(255,248,232,.012) 39px 40px);
+  }
+  .wrap{position:relative; z-index:1; max-width:1160px; margin:0 auto; padding:0 28px;}
+
+  /* ---------- MASTHEAD ---------- */
+  .mast{padding:64px 0 40px; border-bottom:1px solid var(--line);}
+  .mast-top{display:flex; justify-content:space-between; align-items:baseline; gap:24px; flex-wrap:wrap;}
+  .eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.28em; text-transform:uppercase; color:var(--gold); }
+  .issue{font-family:var(--mono); font-size:12px; letter-spacing:.18em; color:var(--faint);}
+  .hero-title{
+    font-family:var(--serif); font-weight:600; font-optical-sizing:auto;
+    font-size:clamp(38px,7vw,76px); line-height:.98; letter-spacing:-.02em;
+    margin:26px 0 8px; color:var(--text); max-width:14ch;
+  }
+  .hero-title em{font-style:italic; color:var(--gold-bright); font-weight:500;}
+  .standfirst{max-width:60ch; color:var(--muted); font-size:16px; line-height:1.6; margin-top:14px;}
+  .standfirst b{color:var(--text); font-weight:600;}
+
+  .spec{
+    margin-top:34px; display:grid; grid-template-columns:repeat(5,1fr); gap:0;
+    border:1px solid var(--line); border-radius:10px; overflow:hidden; background:rgba(28,23,14,.5);
+  }
+  .spec > div{padding:14px 16px; border-right:1px solid var(--line-soft);}
+  .spec > div:last-child{border-right:none;}
+  .spec dt{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint); margin-bottom:6px;}
+  .spec dd{font-size:13.5px; color:var(--text); font-weight:500; line-height:1.35;}
+  @media(max-width:760px){.spec{grid-template-columns:1fr 1fr;} .spec > div{border-right:none; border-bottom:1px solid var(--line-soft);}}
+
+  /* ---------- SECTIONS ---------- */
+  .section{padding:54px 0; border-bottom:1px solid var(--line);}
+  .sec-head{display:flex; align-items:baseline; gap:16px; margin-bottom:30px;}
+  .sec-num{font-family:var(--mono); font-size:13px; color:var(--gold-deep); letter-spacing:.1em; padding-top:3px;}
+  .sec-title{font-family:var(--serif); font-weight:600; font-size:clamp(22px,3.4vw,30px); letter-spacing:-.01em; color:var(--text);}
+  .sec-note{font-size:13px; color:var(--muted); margin-left:auto; max-width:34ch; text-align:right; align-self:center;}
+  @media(max-width:640px){.sec-note{display:none;}}
+
+  /* ---------- HEADLINE FINDINGS ---------- */
+  .findings{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+  .find{background:var(--paper); padding:24px 22px; position:relative; transition:background .25s;}
+  .find:hover{background:var(--paper-2);}
+  .find .tag{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--faint);}
+  .find .big{font-family:var(--serif); font-weight:600; font-size:clamp(24px,3.5vw,34px); line-height:1.04; margin:12px 0 4px; color:var(--text);}
+  .find .big.small{font-size:clamp(19px,2.6vw,23px);}
+  .find .figure{font-family:var(--mono); color:var(--gold-bright); font-weight:500;}
+  .find .sub{font-size:12.5px; color:var(--muted); margin-top:6px; line-height:1.45;}
+  .find::after{content:''; position:absolute; left:22px; bottom:18px; width:26px; height:2px; background:var(--gold-deep); opacity:.0; transition:opacity .25s,width .25s;}
+  .find:hover::after{opacity:.7; width:42px;}
+  @media(max-width:820px){.findings{grid-template-columns:1fr 1fr;}}
+  @media(max-width:480px){.findings{grid-template-columns:1fr;}}
+
+  /* ---------- CHARTS ---------- */
+  .charts{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  .chart{grid-column:1/-1;} /* default wide; overridden below */
+  .card{background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:22px;}
+  .card.half{}
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  @media(max-width:780px){.grid-2{grid-template-columns:1fr;}}
+  .card-title{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); margin-bottom:4px;}
+  .card-desc{font-size:12.5px; color:var(--muted); margin-bottom:16px;}
+  .svg-label{font-family:var(--sans); font-size:11px; fill:var(--muted);}
+  .svg-tick{font-family:var(--mono); font-size:9.5px; fill:var(--faint);}
+  .svg-fig{font-family:var(--mono); font-size:10px; fill:var(--text); font-weight:500;}
+  .svg-name{font-family:var(--sans); font-size:10px; fill:var(--text);}
+
+  /* gauge + adoption */
+  .gauge-row{display:grid; grid-template-columns:300px 1fr; gap:30px; align-items:center;}
+  @media(max-width:720px){.gauge-row{grid-template-columns:1fr;}}
+  .gauge-verdict{text-align:center; margin-top:4px; font-family:var(--mono); font-size:12px; letter-spacing:.1em; color:var(--warn);}
+  .adopt-note{font-size:12px; color:var(--muted); margin-bottom:18px;}
+  .bar-row{margin-bottom:13px;}
+  .bar-head{display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px; align-items:baseline;}
+  .bar-head .v{font-family:var(--mono); font-weight:500;}
+  .bar-track{height:5px; border-radius:3px; background:rgba(255,248,232,.07); overflow:hidden;}
+  .bar-fill{height:5px; border-radius:3px; width:0; transition:width 1.4s cubic-bezier(.22,1,.36,1);}
+
+  /* ---------- TABLES ---------- */
+  .table-wrap{border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--paper);}
+  .scroll{overflow-x:auto;}
+  table.report{width:100%; border-collapse:collapse; min-width:560px;}
+  table.report th{
+    font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint);
+    padding:14px 16px; text-align:left; border-bottom:1px solid var(--line); white-space:nowrap; font-weight:500;
+  }
+  table.report th.num, table.report td.num{text-align:right; font-family:var(--mono); font-weight:500;}
+  table.report td{padding:13px 16px; font-size:13.5px; border-bottom:1px solid var(--line-soft); color:var(--text);}
+  table.report tbody tr:last-child td{border-bottom:none;}
+  table.report tbody tr{transition:background .2s;}
+  table.report tbody tr:hover{background:var(--paper-2);}
+  .cat-dot{display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:9px; vertical-align:middle;}
+  .cat-name{font-weight:600;}
+  .star{color:var(--gold-bright);}
+  .lead{color:var(--gold-bright);}
+  td .verdict{font-size:12px; color:var(--muted);}
+  .lc-pill{font-family:var(--mono); font-size:11px; letter-spacing:.06em;}
+
+  /* ---------- TOOL DIRECTORY ---------- */
+  .legend{display:flex; gap:22px; flex-wrap:wrap; margin-bottom:20px; font-family:var(--mono); font-size:11px; letter-spacing:.05em; color:var(--muted);}
+  .legend span{display:inline-flex; align-items:center; gap:8px;}
+  .legend i{width:18px; height:2px; display:inline-block;}
+  .tools{display:grid; grid-template-columns:repeat(auto-fill,minmax(255px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+  .tool{background:var(--paper); padding:18px 18px 16px; position:relative; transition:background .25s, transform .25s;}
+  .tool:hover{background:var(--paper-2); transform:translateY(-2px); z-index:2;}
+  .tool::before{content:''; position:absolute; left:0; top:18px; bottom:16px; width:3px; border-radius:3px; background:var(--accent,#fff);}
+  .tool-flag{position:absolute; top:16px; right:16px; font-family:var(--mono); font-size:9px; letter-spacing:.1em; padding:3px 7px; border-radius:20px; font-weight:500;}
+  .tool-name{font-family:var(--serif); font-weight:600; font-size:18px; margin-left:12px; color:var(--text);}
+  .tool-cat{margin-left:12px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-top:2px; display:block;}
+  .tool-metrics{margin-left:12px; margin-top:14px; display:grid; grid-template-columns:1fr 1fr; gap:10px 16px;}
+  .tm .l{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--faint);}
+  .tm .n{font-family:var(--mono); font-size:14px; font-weight:500; color:var(--text); margin-top:2px;}
+  .tm .n.gold{color:var(--gold-bright);}
+  .tool-foot{margin-left:12px; margin-top:14px; padding-top:11px; border-top:1px solid var(--line-soft); display:flex; justify-content:space-between; align-items:center;}
+  .tool-foot .lc{font-family:var(--mono); font-size:11px;}
+  .tool-foot .cph{font-family:var(--mono); font-size:11px; color:var(--muted);}
+
+  /* ---------- RECOMMENDATION ---------- */
+  .rec-intro{font-size:14px; color:var(--muted); max-width:62ch; margin-bottom:26px; line-height:1.6;}
+  .rec-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+  @media(max-width:840px){.rec-grid{grid-template-columns:1fr;}}
+  .rec{background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:24px; position:relative; overflow:hidden;}
+  .rec::before{content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--accent);}
+  .rec-role{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); }
+  .rec-name{font-family:var(--serif); font-weight:600; font-size:26px; margin:8px 0 16px; color:var(--text);}
+  .rec-stats{display:flex; flex-direction:column; gap:0;}
+  .rec-stat{display:flex; justify-content:space-between; font-size:13px; padding:7px 0; border-bottom:1px solid var(--line-soft);}
+  .rec-stat:last-of-type{border-bottom:none;}
+  .rec-stat .k{color:var(--muted);}
+  .rec-stat .v{font-family:var(--mono); font-weight:500; color:var(--text);}
+  .rec-stat .v.gold{color:var(--gold-bright);}
+  .rec-reason{font-size:12.5px; color:var(--muted); line-height:1.6; margin-top:16px; padding-top:14px; border-top:1px solid var(--line);}
+
+  .stack-sum{margin-top:24px; border:1px solid var(--line); border-radius:12px; background:rgba(217,178,108,.05); padding:22px 24px;}
+  .stack-sum .h{font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); margin-bottom:16px;}
+  .stack-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:20px;}
+  @media(max-width:760px){.stack-grid{grid-template-columns:1fr 1fr;}}
+  .stack-grid .l{font-size:11.5px; color:var(--muted); display:block; margin-bottom:6px; line-height:1.3;}
+  .stack-grid .v{font-family:var(--serif); font-weight:600; font-size:26px; color:var(--text);}
+  .stack-grid .v small{font-family:var(--mono); font-size:11px; color:var(--good); font-weight:500; margin-left:4px;}
+  .badge-top{display:inline-block; font-family:var(--mono); font-size:9px; letter-spacing:.08em; color:var(--good); border:1px solid rgba(155,181,122,.4); border-radius:20px; padding:2px 7px; margin-left:6px; vertical-align:middle;}
+
+  /* ---------- AWARDS ---------- */
+  .awards{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+  @media(max-width:760px){.awards{grid-template-columns:1fr 1fr;}}
+  @media(max-width:440px){.awards{grid-template-columns:1fr;}}
+  .award{background:var(--paper); padding:22px; transition:background .25s;}
+  .award:hover{background:var(--paper-2);}
+  .award .l{font-family:var(--mono); font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--gold); }
+  .award .w{font-family:var(--serif); font-weight:600; font-size:22px; margin:10px 0 4px; color:var(--text);}
+  .award .w.small{font-size:16px;}
+  .award .s{font-family:var(--mono); font-size:12px; color:var(--muted);}
+
+  /* ---------- FOOTER ---------- */
+  footer{padding:44px 0 60px; text-align:left;}
+  footer .ft{font-family:var(--serif); font-size:18px; color:var(--text); margin-bottom:8px;}
+  footer .fm{font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; color:var(--faint); line-height:1.7;}
+
+  /* reveal */
+  .reveal{opacity:0; transform:translateY(14px); transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in{opacity:1; transform:none;}
+
+  ::-webkit-scrollbar{height:8px; width:8px;}
+  ::-webkit-scrollbar-track{background:var(--paper);}
+  ::-webkit-scrollbar-thumb{background:var(--gold-deep); border-radius:4px; opacity:.5;}
+  :focus-visible{outline:2px solid var(--gold-bright); outline-offset:3px; border-radius:4px;}
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important; transition:none!important;}
+    .reveal{opacity:1; transform:none;}
+    .bar-fill{transition:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- MASTHEAD -->
+  <header class="mast">
+    <div class="mast-top">
+      <div class="eyebrow">AI Tooling Dossier</div>
+      <div class="issue">Vol. 01 · 2024 · Confidential to subject</div>
+    </div>
+    <h1 class="hero-title">Where <em>$50 a month</em> goes furthest.</h1>
+    <p class="standfirst">An intelligence report ranking <b>18 AI tools</b> across <b>11 categories</b> on return, productivity and cost — sized for one software-engineering student with 120 study hours a month and a strict budget. The verdict: the highest-return stack costs exactly the budget and saves over a thousand hours a year.</p>
+
+    <dl class="spec">
+      <div><dt>Profile</dt><dd>Software-engineering student</dd></div>
+      <div><dt>Study load</dt><dd>120 hrs / month</dd></div>
+      <div><dt>Budget</dt><dd>$50 / month</dd></div>
+      <div><dt>Objective</dt><dd>Learning · Development · Productivity</dd></div>
+      <div><dt>Dataset</dt><dd>18 tools · 11 categories</dd></div>
+    </dl>
+  </header>
+
+  <!-- 01 HEADLINE FINDINGS -->
+  <section class="section reveal">
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2 class="sec-title">Headline findings</h2>
+      <p class="sec-note">The six numbers that decide the spend.</p>
+    </div>
+    <div class="findings">
+      <div class="find">
+        <div class="tag">Highest ROI tool</div>
+        <div class="big">GitHub Copilot</div>
+        <div class="sub">ROI score <span class="figure">2.9467</span> · Coding assistant</div>
+      </div>
+      <div class="find">
+        <div class="tag">Best value tool</div>
+        <div class="big">DeepL</div>
+        <div class="sub">Value index <span class="figure">43.20</span> · Translation AI</div>
+      </div>
+      <div class="find">
+        <div class="tag">Coverage</div>
+        <div class="big"><span class="figure">11</span> categories</div>
+        <div class="sub">18 tools mapped across the ecosystem</div>
+      </div>
+      <div class="find">
+        <div class="tag">Avg productivity score</div>
+        <div class="big"><span class="figure">87.61</span></div>
+        <div class="sub">Out of 100, across all 18 tools</div>
+      </div>
+      <div class="find">
+        <div class="tag">Best $50 combo</div>
+        <div class="big small">ChatGPT · Claude · Copilot</div>
+        <div class="sub">Combined ROI <span class="figure">6.78</span> · exactly $50/mo</div>
+      </div>
+      <div class="find">
+        <div class="tag">Max weekly hours saved</div>
+        <div class="big"><span class="figure">24.5</span> hrs</div>
+        <div class="sub">Best 3-tool combo within the $50 budget</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 VISUAL ANALYTICS -->
+  <section class="section reveal">
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2 class="sec-title">Visual analytics</h2>
+      <p class="sec-note">Return, cost, effort and adoption, read at a glance.</p>
+    </div>
+    <div class="charts">
+      <!-- ROI leaderboard (wide) -->
+      <div class="card chart" style="grid-column:1/-1">
+        <div class="card-title">ROI leaderboard</div>
+        <div class="card-desc">Top 10 tools by return on investment — (weekly hours saved × 52) ÷ annual cost.</div>
+        <div id="chart-roi"></div>
+      </div>
+
+      <div class="grid-2" style="grid-column:1/-1">
+        <!-- Radar -->
+        <div class="card">
+          <div class="card-title">Category productivity radar</div>
+          <div class="card-desc">Average productivity score by category (0–100).</div>
+          <div id="chart-radar"></div>
+        </div>
+        <!-- Bubble -->
+        <div class="card">
+          <div class="card-title">Cost vs hours saved</div>
+          <div class="card-desc">Each tool plotted by monthly cost and weekly hours saved; bubble size = user rating.</div>
+          <div id="chart-bubble"></div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="grid-column:1/-1">
+        <!-- Learning curve grouped -->
+        <div class="card">
+          <div class="card-title">Learning curve analysis</div>
+          <div class="card-desc">Averages grouped by adoption difficulty.</div>
+          <div id="chart-lc"></div>
+        </div>
+        <!-- placeholder filled by gauge below in wide -->
+        <div class="card">
+          <div class="card-title">Spend efficiency</div>
+          <div class="card-desc">How much value the $50 budget actually converts.</div>
+          <div id="chart-mini"></div>
+        </div>
+      </div>
+
+      <!-- Adoption gauge (wide) -->
+      <div class="card chart" style="grid-column:1/-1">
+        <div class="card-title">AI adoption score — overall ecosystem</div>
+        <div class="card-desc">Weighted: ROI 40% · productivity 30% · rating 20% · cost efficiency 10%.</div>
+        <div class="gauge-row">
+          <div>
+            <div id="chart-gauge"></div>
+            <div class="gauge-verdict">Moderate adoption efficiency</div>
+          </div>
+          <div>
+            <div class="adopt-note">Adoption score by category — where the spend converts best.</div>
+            <div id="adopt-bars"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 LEARNING CURVE -->
+  <section class="section reveal">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2 class="sec-title">Learning curve breakdown</h2>
+      <p class="sec-note">Easy tools return more per dollar; harder ones save slightly more hours.</p>
+    </div>
+    <div class="table-wrap scroll">
+      <table class="report">
+        <thead>
+          <tr>
+            <th>Learning curve</th>
+            <th class="num">Avg ROI score</th>
+            <th class="num">Avg productivity</th>
+            <th class="num">Avg hrs saved / wk</th>
+            <th>Verdict</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="lc-pill" style="color:var(--good)">● Low</span></td>
+            <td class="num lead">1.6419</td>
+            <td class="num">86.00</td>
+            <td class="num">5.67</td>
+            <td><span class="verdict">Best ROI efficiency · easiest to adopt</span></td>
+          </tr>
+          <tr>
+            <td><span class="lc-pill" style="color:var(--warn)">● Medium</span></td>
+            <td class="num lead">1.3345</td>
+            <td class="num" style="color:var(--good)">90.33</td>
+            <td class="num" style="color:var(--c-code)">7.43</td>
+            <td><span class="verdict">Best productivity · more hours saved</span></td>
+          </tr>
+          <tr>
+            <td><span class="lc-pill" style="color:var(--bad)">● High</span></td>
+            <td class="num">0.9657</td>
+            <td class="num">89.00</td>
+            <td class="num">7.80</td>
+            <td><span class="verdict">Lowest ROI · high hours but costly to learn</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 04 CATEGORY ANALYSIS -->
+  <section class="section reveal">
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <h2 class="sec-title">Category analysis</h2>
+      <p class="sec-note">Coding assistants lead on return; AI assistants on raw output.</p>
+    </div>
+    <div class="table-wrap scroll">
+      <table class="report" id="cat-table" style="min-width:720px">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th class="num">Tools</th>
+            <th class="num">Avg cost / mo</th>
+            <th class="num">Avg hrs saved</th>
+            <th class="num">Avg rating</th>
+            <th class="num">Avg productivity</th>
+            <th class="num">Avg ROI</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 05 TOOL DIRECTORY -->
+  <section class="section reveal">
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <h2 class="sec-title">Tool directory</h2>
+      <p class="sec-note">All 18 tools, full efficiency matrix.</p>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--gold-bright)"></i> Bronze marker = highest ROI</span>
+      <span><i style="background:var(--c-search)"></i> Plum marker = best value</span>
+    </div>
+    <div class="tools" id="toolsGrid"></div>
+  </section>
+
+  <!-- 06 RECOMMENDATION -->
+  <section class="section reveal">
+    <div class="sec-head">
+      <span class="sec-num">06</span>
+      <h2 class="sec-title">Recommended stack</h2>
+      <p class="sec-note">Metrics-driven, fits the budget exactly.</p>
+    </div>
+    <p class="rec-intro">For a software-engineering student spending <b style="color:var(--text)">$50/month</b> toward learning, development and productivity, three tools cover the full workflow — a reasoning assistant, a code generator and a research engine — while landing on the budget to the dollar.</p>
+
+    <div class="rec-grid">
+      <div class="rec" style="--accent:var(--c-ai)">
+        <div class="rec-role">Primary AI assistant</div>
+        <div class="rec-name">Claude</div>
+        <div class="rec-stats">
+          <div class="rec-stat"><span class="k">Monthly cost</span><span class="v">$20</span></div>
+          <div class="rec-stat"><span class="k">Weekly hours saved</span><span class="v">9.2</span></div>
+          <div class="rec-stat"><span class="k">ROI score</span><span class="v gold">1.9933</span></div>
+          <div class="rec-stat"><span class="k">Productivity</span><span class="v">95 / 100 ★</span></div>
+          <div class="rec-stat"><span class="k">User rating</span><span class="v">4.9 / 5.0 ★</span></div>
+          <div class="rec-stat"><span class="k">Expected annual ROI</span><span class="v gold">199.33%</span></div>
+        </div>
+        <p class="rec-reason">Highest productivity score (95) and rating (4.9) in the dataset. Best for analysis, report writing, debugging logic and learning concepts. Value index of 23.28 with a low learning curve makes it the top primary tool for students.</p>
+      </div>
+
+      <div class="rec" style="--accent:var(--c-code)">
+        <div class="rec-role">Coding assistant</div>
+        <div class="rec-name">GitHub Copilot</div>
+        <div class="rec-stats">
+          <div class="rec-stat"><span class="k">Monthly cost</span><span class="v">$10</span></div>
+          <div class="rec-stat"><span class="k">Weekly hours saved</span><span class="v">6.8</span></div>
+          <div class="rec-stat"><span class="k">ROI score</span><span class="v gold">2.9467 · #1</span></div>
+          <div class="rec-stat"><span class="k">Productivity</span><span class="v">90 / 100</span></div>
+          <div class="rec-stat"><span class="k">Cost per hour saved</span><span class="v">$0.34</span></div>
+          <div class="rec-stat"><span class="k">Expected annual ROI</span><span class="v gold">294.67%</span></div>
+        </div>
+        <p class="rec-reason">Highest ROI in the entire dataset (2.9467) at only $10/mo, and the lowest cost-per-hour-saved ($0.34) of all tools. A low learning curve means it slots into coursework immediately. Essential for code generation and projects.</p>
+      </div>
+
+      <div class="rec" style="--accent:var(--c-search)">
+        <div class="rec-role">Research tool</div>
+        <div class="rec-name">Perplexity</div>
+        <div class="rec-stats">
+          <div class="rec-stat"><span class="k">Monthly cost</span><span class="v">$20</span></div>
+          <div class="rec-stat"><span class="k">Weekly hours saved</span><span class="v">5.4</span></div>
+          <div class="rec-stat"><span class="k">ROI score</span><span class="v gold">1.1700</span></div>
+          <div class="rec-stat"><span class="k">Productivity</span><span class="v">87 / 100</span></div>
+          <div class="rec-stat"><span class="k">Category</span><span class="v">Search AI</span></div>
+          <div class="rec-stat"><span class="k">Expected annual ROI</span><span class="v gold">117.00%</span></div>
+        </div>
+        <p class="rec-reason">The only dedicated search AI in the set, with a low learning curve and an 87 productivity score. Saves 5.4 hrs/week on research central to coursework. Rated 4.6/5 across 620 users — the best fit for academic research and documentation.</p>
+      </div>
+    </div>
+
+    <div class="stack-sum">
+      <div class="h">Stack summary</div>
+      <div class="stack-grid">
+        <div><span class="l">Total monthly cost</span><span class="v">$50<small>= exact budget</small></span></div>
+        <div><span class="l">Total weekly hours saved</span><span class="v">21.4</span></div>
+        <div><span class="l">Combined ROI score</span><span class="v" style="color:var(--gold-bright)">6.11</span></div>
+        <div><span class="l">Annual hours saved</span><span class="v">1,112.8</span></div>
+        <div><span class="l">Avg productivity<span class="badge-top">Top tier</span></span><span class="v">90.67</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 AWARDS -->
+  <section class="section reveal">
+    <div class="sec-head">
+      <span class="sec-num">07</span>
+      <h2 class="sec-title">Best-in-class awards</h2>
+      <p class="sec-note">Category leaders across the dataset.</p>
+    </div>
+    <div class="awards">
+      <div class="award"><div class="l">Highest ROI</div><div class="w">GitHub Copilot</div><div class="s">ROI 2.9467</div></div>
+      <div class="award"><div class="l">Highest rated</div><div class="w">Claude</div><div class="s">Rating 4.9 / 5.0</div></div>
+      <div class="award"><div class="l">Lowest cost</div><div class="w">DeepL</div><div class="s">$9.00 / month</div></div>
+      <div class="award"><div class="l">Best productivity</div><div class="w">Claude</div><div class="s">Score 95 / 100</div></div>
+      <div class="award"><div class="l">Best value (index)</div><div class="w">DeepL</div><div class="s">Value index 43.20</div></div>
+      <div class="award"><div class="l">Best budget combo</div><div class="w small">ChatGPT · Claude · Copilot</div><div class="s">24.5 hrs saved · $50/mo</div></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="ft">AI Tooling Dossier</div>
+    <div class="fm">18 tools · 11 categories · computed from survey dataset<br>Software-engineering student profile · $50 / month budget</div>
+  </footer>
+
+</div>
+
+<script>
+/* ============ DATA ============ */
+const tools = [
+  {name:"ChatGPT",category:"AI Assistant",monthly:20,hours:8.5,rating:4.8,lc:"Low",productivity:92,roi:1.8417,pvi:22.08,cph:0.543,best:null},
+  {name:"Claude",category:"AI Assistant",monthly:20,hours:9.2,rating:4.9,lc:"Low",productivity:95,roi:1.9933,pvi:23.275,cph:0.5017,best:null},
+  {name:"GitHub Copilot",category:"Coding Assistant",monthly:10,hours:6.8,rating:4.7,lc:"Low",productivity:90,roi:2.9467,pvi:42.3,cph:0.3394,best:"roi"},
+  {name:"Cursor",category:"Coding Assistant",monthly:20,hours:8.1,rating:4.8,lc:"Medium",productivity:93,roi:1.755,pvi:22.32,cph:0.5698,best:null},
+  {name:"Perplexity",category:"Search AI",monthly:20,hours:5.4,rating:4.6,lc:"Low",productivity:87,roi:1.17,pvi:20.01,cph:0.8547,best:null},
+  {name:"Notion AI",category:"Productivity",monthly:10,hours:4.2,rating:4.4,lc:"Low",productivity:82,roi:1.82,pvi:36.08,cph:0.5495,best:null},
+  {name:"Midjourney",category:"Design AI",monthly:30,hours:7.3,rating:4.8,lc:"Medium",productivity:91,roi:1.0544,pvi:14.56,cph:0.9484,best:null},
+  {name:"Canva Magic Studio",category:"Design AI",monthly:15,hours:5.6,rating:4.5,lc:"Low",productivity:84,roi:1.6178,pvi:25.2,cph:0.6181,best:null},
+  {name:"Grammarly",category:"Writing AI",monthly:12,hours:3.8,rating:4.6,lc:"Low",productivity:80,roi:1.3722,pvi:30.6667,cph:0.7287,best:null},
+  {name:"Jasper",category:"Writing AI",monthly:39,hours:6.2,rating:4.5,lc:"Medium",productivity:86,roi:0.6889,pvi:9.9231,cph:1.4516,best:null},
+  {name:"Fireflies AI",category:"Meeting AI",monthly:18,hours:4.7,rating:4.6,lc:"Low",productivity:85,roi:1.1315,pvi:21.7222,cph:0.8838,best:null},
+  {name:"Otter AI",category:"Meeting AI",monthly:17,hours:4.5,rating:4.5,lc:"Low",productivity:83,roi:1.1471,pvi:21.9706,cph:0.8718,best:null},
+  {name:"Runway",category:"Video AI",monthly:35,hours:7.8,rating:4.7,lc:"High",productivity:89,roi:0.9657,pvi:11.9514,cph:1.0355,best:null},
+  {name:"Synthesia",category:"Video AI",monthly:30,hours:6.9,rating:4.6,lc:"Medium",productivity:88,roi:0.9967,pvi:13.4933,cph:1.0033,best:null},
+  {name:"Zapier AI",category:"Automation",monthly:25,hours:8.7,rating:4.7,lc:"Medium",productivity:94,roi:1.508,pvi:17.672,cph:0.6631,best:null},
+  {name:"Make",category:"Automation",monthly:16,hours:7.4,rating:4.6,lc:"Medium",productivity:90,roi:2.0042,pvi:25.875,cph:0.499,best:null},
+  {name:"ElevenLabs",category:"Voice AI",monthly:22,hours:5.8,rating:4.8,lc:"Low",productivity:87,roi:1.1424,pvi:18.9818,cph:0.8753,best:null},
+  {name:"DeepL",category:"Translation AI",monthly:9,hours:3.9,rating:4.8,lc:"Low",productivity:81,roi:1.8778,pvi:43.2,cph:0.5325,best:"value"},
+];
+
+const CAT = {
+  "AI Assistant":"--c-ai","Coding Assistant":"--c-code","Search AI":"--c-search",
+  "Productivity":"--c-prod","Design AI":"--c-design","Writing AI":"--c-write",
+  "Meeting AI":"--c-meet","Video AI":"--c-video","Automation":"--c-auto",
+  "Voice AI":"--c-voice","Translation AI":"--c-trans"
+};
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const catColor = c => css(CAT[c] || "--gold");
+const lcColor = {Low:css("--good"),Medium:css("--warn"),High:css("--bad")};
+
+/* ============ ROI LEADERBOARD ============ */
+(function(){
+  const top = [...tools].sort((a,b)=>b.roi-a.roi).slice(0,10);
+  const W=860,rowH=30,padL=150,padR=70,top0=8;
+  const H=top0*2+top.length*rowH;
+  const max=top[0].roi, x0=padL, chartW=W-padL-padR;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg">`;
+  top.forEach((t,i)=>{
+    const y=top0+i*rowH, bw=chartW*(t.roi/max), col=catColor(t.category);
+    s+=`<text x="${padL-12}" y="${y+15}" text-anchor="end" class="svg-name">${t.name}</text>`;
+    s+=`<rect x="${x0}" y="${y+3}" width="${chartW}" height="${rowH-12}" rx="3" fill="rgba(255,248,232,.04)"/>`;
+    s+=`<rect x="${x0}" y="${y+3}" width="${bw}" height="${rowH-12}" rx="3" fill="${col}" opacity="${i===0?'.95':'.62'}">
+          <animate attributeName="width" from="0" to="${bw}" dur="0.9s" begin="${i*0.05}s" fill="freeze" calcMode="spline" keySplines="0.2 1 0.3 1" keyTimes="0;1"/></rect>`;
+    s+=`<text x="${x0+bw+8}" y="${y+15}" class="svg-fig" ${i===0?'style="fill:'+css('--gold-bright')+'"':''}>${t.roi.toFixed(4)}</text>`;
+  });
+  s+=`</svg>`;
+  document.getElementById('chart-roi').innerHTML=s;
+})();
+
+/* ============ RADAR ============ */
+(function(){
+  const data=[
+    {l:"AI Asst",v:93.5,c:"--c-ai"},{l:"Coding",v:91.5,c:"--c-code"},
+    {l:"Auto",v:92,c:"--c-auto"},{l:"Design",v:87.5,c:"--c-design"},
+    {l:"Video",v:88.5,c:"--c-video"},{l:"Writing",v:83,c:"--c-write"},
+    {l:"Meeting",v:84,c:"--c-meet"},{l:"Search",v:87,c:"--c-search"}
+  ];
+  const cx=190,cy=180,R=110,min=80,max=96;
+  const n=data.length;
+  const ang=i=>(-90+i*360/n)*Math.PI/180;
+  const rr=v=>(v-min)/(max-min)*R;
+  let s=`<svg viewBox="0 0 380 360" width="100%" xmlns="http://www.w3.org/2000/svg">`;
+  [0.25,0.5,0.75,1].forEach(f=>{ s+=`<circle cx="${cx}" cy="${cy}" r="${R*f}" fill="none" stroke="rgba(255,248,232,.07)" stroke-width="1"/>`; });
+  data.forEach((d,i)=>{
+    const x=cx+Math.cos(ang(i))*R, y=cy+Math.sin(ang(i))*R;
+    s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,248,232,.07)" stroke-width="1"/>`;
+  });
+  // polygon
+  let pts=data.map((d,i)=>{ const r=rr(d.v); return [cx+Math.cos(ang(i))*r, cy+Math.sin(ang(i))*r]; });
+  const poly=pts.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
+  s+=`<defs><radialGradient id="rg" cx="50%" cy="50%"><stop offset="0%" stop-color="${css('--gold-bright')}" stop-opacity=".28"/><stop offset="100%" stop-color="${css('--gold-deep')}" stop-opacity=".06"/></radialGradient></defs>`;
+  s+=`<polygon points="${poly}" fill="url(#rg)" stroke="${css('--gold')}" stroke-width="1.6"/>`;
+  pts.forEach((p,i)=>{ s+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.6" fill="${css(data[i].c)}"/>`; });
+  // labels
+  data.forEach((d,i)=>{
+    const lr=R+22, x=cx+Math.cos(ang(i))*lr, y=cy+Math.sin(ang(i))*lr;
+    let anc="middle"; if(Math.cos(ang(i))>0.3)anc="start"; else if(Math.cos(ang(i))<-0.3)anc="end";
+    s+=`<text x="${x.toFixed(0)}" y="${(y+3).toFixed(0)}" text-anchor="${anc}" class="svg-label">${d.l} <tspan class="svg-fig" fill="${css('--muted')}">${d.v}</tspan></text>`;
+  });
+  s+=`</svg>`;
+  document.getElementById('chart-radar').innerHTML=s;
+})();
+
+/* ============ BUBBLE ============ */
+(function(){
+  const W=380,H=320,padL=46,padR=14,padT=16,padB=40;
+  const xMin=8,xMax=40,yMin=3.5,yMax=9.5;
+  const px=c=>padL+(c-xMin)/(xMax-xMin)*(W-padL-padR);
+  const py=h=>H-padB-(h-yMin)/(yMax-yMin)*(H-padT-padB);
+  const pr=r=>8+(r-4.4)/(4.9-4.4)*13;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg">`;
+  // grid
+  [4,5,6,7,8,9].forEach(h=>{ const y=py(h); s+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="rgba(255,248,232,.05)" stroke-width="1"/><text x="${padL-8}" y="${y+3}" text-anchor="end" class="svg-tick">${h}</text>`; });
+  [10,20,30,40].forEach(c=>{ const x=px(c); s+=`<text x="${x}" y="${H-padB+16}" text-anchor="middle" class="svg-tick">$${c}</text>`; });
+  s+=`<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="rgba(255,248,232,.12)"/>`;
+  s+=`<line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="rgba(255,248,232,.12)"/>`;
+  // axis titles
+  s+=`<text x="${(padL+W-padR)/2}" y="${H-6}" text-anchor="middle" class="svg-label">Monthly cost (USD)</text>`;
+  s+=`<text transform="translate(13,${(padT+H-padB)/2}) rotate(-90)" text-anchor="middle" class="svg-label">Hours saved / week</text>`;
+  const label=new Set(["Claude","GitHub Copilot","Cursor","DeepL","Zapier AI","Midjourney","Runway","Notion AI"]);
+  tools.forEach(t=>{
+    const x=px(t.monthly),y=py(t.hours),r=pr(t.rating),col=catColor(t.category);
+    s+=`<g><title>${t.name} — $${t.monthly}/mo · ${t.hours} hrs/wk · ${t.rating}★</title>`;
+    s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${col}" fill-opacity=".22" stroke="${col}" stroke-width="1.4"/>`;
+    if(label.has(t.name)){
+      const short=t.name==="GitHub Copilot"?"Copilot":t.name==="Canva Magic Studio"?"Canva":t.name==="Zapier AI"?"Zapier":t.name==="Notion AI"?"Notion":t.name;
+      s+=`<text x="${x.toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="middle" class="svg-name" style="font-size:9px">${short}</text>`;
+    }
+    s+=`</g>`;
+  });
+  s+=`</svg>`;
+  document.getElementById('chart-bubble').innerHTML=s;
+})();
+
+/* ============ LEARNING CURVE GROUPED ============ */
+(function(){
+  const groups=[
+    {l:"Low",roi:1.6419,prod:86.00,hrs:5.67,c:"--good"},
+    {l:"Medium",roi:1.3345,prod:90.33,hrs:7.43,c:"--warn"},
+    {l:"High",roi:0.9657,prod:89.00,hrs:7.80,c:"--bad"}
+  ];
+  const W=380,H=320,padL=40,padB=46,padT=14,padR=14;
+  const plotH=H-padB-padT, base=H-padB;
+  const roiMax=3, prodMax=100, hrsMax=9.2;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg">`;
+  [0,25,50,75,100].forEach(v=>{ const y=base-v/100*plotH; s+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="rgba(255,248,232,.05)"/><text x="${padL-6}" y="${y+3}" text-anchor="end" class="svg-tick">${v}</text>`; });
+  s+=`<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${base}" stroke="rgba(255,248,232,.12)"/>`;
+  const gW=(W-padL-padR)/3, bw=20, gap=6;
+  groups.forEach((g,i)=>{
+    const gx=padL+i*gW+gW/2;
+    const series=[
+      {v:g.roi/roiMax*100, col:css('--gold')},
+      {v:g.prod/prodMax*100, col:css(g.c)},
+      {v:g.hrs/hrsMax*100, col:css('--c-code')}
+    ];
+    series.forEach((sr,j)=>{
+      const x=gx-(bw*1.5+gap)+j*(bw+gap);
+      const h=sr.v/100*plotH, y=base-h;
+      s+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw}" height="${h.toFixed(1)}" rx="3" fill="${sr.col}" opacity=".82">
+            <animate attributeName="height" from="0" to="${h.toFixed(1)}" dur="0.8s" begin="${(i*0.08+j*0.04)}s" fill="freeze"/>
+            <animate attributeName="y" from="${base}" to="${y.toFixed(1)}" dur="0.8s" begin="${(i*0.08+j*0.04)}s" fill="freeze"/></rect>`;
+    });
+    s+=`<text x="${gx}" y="${base+18}" text-anchor="middle" class="svg-label">${g.l}</text>`;
+  });
+  // legend
+  const leg=[["ROI",css('--gold')],["Productivity",css('--good')],["Hrs saved",css('--c-code')]];
+  let lx=padL;
+  leg.forEach(([t,c])=>{ s+=`<rect x="${lx}" y="${H-14}" width="9" height="9" rx="2" fill="${c}"/><text x="${lx+13}" y="${H-6}" class="svg-tick" style="fill:${css('--muted')}">${t}</text>`; lx+=t.length*6.5+30; });
+  s+=`</svg>`;
+  document.getElementById('chart-lc').innerHTML=s;
+})();
+
+/* ============ MINI: budget conversion (cost per hour saved, best stack) ============ */
+(function(){
+  // small lollipop of cost-per-hour-saved for the 3 recommended tools + dataset avg
+  const items=[
+    {l:"GitHub Copilot",v:0.34,c:"--c-code"},
+    {l:"Claude",v:0.50,c:"--c-ai"},
+    {l:"Perplexity",v:0.85,c:"--c-search"},
+    {l:"Dataset avg",v:0.74,c:"--muted"}
+  ];
+  const W=380,H=320,padL=120,padR=46,padT=24,padB=24;
+  const max=1.0;
+  const rowH=(H-padT-padB)/items.length;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" xmlns="http://www.w3.org/2000/svg">`;
+  s+=`<text x="${padL}" y="14" class="svg-tick" style="fill:${css('--muted')}">Cost per hour saved (lower is better)</text>`;
+  [0,0.25,0.5,0.75,1].forEach(v=>{ const x=padL+v/max*(W-padL-padR); s+=`<line x1="${x}" y1="${padT}" x2="${x}" y2="${H-padB}" stroke="rgba(255,248,232,.05)"/><text x="${x}" y="${H-8}" text-anchor="middle" class="svg-tick">$${v.toFixed(2)}</text>`; });
+  items.forEach((it,i)=>{
+    const y=padT+rowH*i+rowH/2, x=padL+it.v/max*(W-padL-padR), col=css(it.c);
+    s+=`<text x="${padL-10}" y="${y+3}" text-anchor="end" class="svg-name">${it.l}</text>`;
+    s+=`<line x1="${padL}" y1="${y}" x2="${x}" y2="${y}" stroke="${col}" stroke-width="2" opacity=".5"/>`;
+    s+=`<circle cx="${x.toFixed(1)}" cy="${y}" r="5" fill="${col}"/>`;
+    s+=`<text x="${(x+10).toFixed(1)}" y="${y+3}" class="svg-fig">$${it.v.toFixed(2)}</text>`;
+  });
+  s+=`</svg>`;
+  document.getElementById('chart-mini').innerHTML=s;
+})();
+
+/* ============ GAUGE ============ */
+(function(){
+  const score=44.58, cx=140,cy=150,R=110;
+  const len=Math.PI*R; const off=len*(1-score/100);
+  let s=`<svg viewBox="0 0 280 178" width="280" style="max-width:100%" xmlns="http://www.w3.org/2000/svg">`;
+  s+=`<defs><linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="${css('--bad')}"/><stop offset="55%" stop-color="${css('--gold')}"/><stop offset="100%" stop-color="${css('--good')}"/></linearGradient></defs>`;
+  s+=`<path d="M ${cx-R} ${cy} A ${R} ${R} 0 0 1 ${cx+R} ${cy}" fill="none" stroke="rgba(255,248,232,.08)" stroke-width="16" stroke-linecap="round"/>`;
+  s+=`<path d="M ${cx-R} ${cy} A ${R} ${R} 0 0 1 ${cx+R} ${cy}" fill="none" stroke="url(#gg)" stroke-width="16" stroke-linecap="round" stroke-dasharray="${len.toFixed(1)}" stroke-dashoffset="${len.toFixed(1)}">
+        <animate attributeName="stroke-dashoffset" from="${len.toFixed(1)}" to="${off.toFixed(1)}" dur="1.6s" begin="0.2s" fill="freeze" calcMode="spline" keySplines="0.2 1 0.3 1" keyTimes="0;1"/></path>`;
+  s+=`<text x="${cx}" y="${cy-12}" text-anchor="middle" style="font-family:var(--serif);font-size:40px;font-weight:600;fill:${css('--text')}">44.58</text>`;
+  s+=`<text x="${cx}" y="${cy+8}" text-anchor="middle" class="svg-tick" style="fill:${css('--muted')}">out of 100</text>`;
+  s+=`<text x="${cx-R}" y="${cy+18}" text-anchor="middle" class="svg-tick">0</text>`;
+  s+=`<text x="${cx}" y="32" text-anchor="middle" class="svg-tick">50</text>`;
+  s+=`<text x="${cx+R}" y="${cy+18}" text-anchor="middle" class="svg-tick">100</text>`;
+  s+=`</svg>`;
+  document.getElementById('chart-gauge').innerHTML=s;
+})();
+
+/* ============ ADOPTION BARS ============ */
+(function(){
+  const rows=[
+    {l:"Coding Assistant",v:85.22,c:"--c-code"},
+    {l:"AI Assistant",v:79.74,c:"--c-ai"},
+    {l:"Automation",v:62.38,c:"--c-auto"},
+    {l:"Translation AI",v:53.96,c:"--c-trans"},
+    {l:"Design AI",v:38.78,c:"--c-design"},
+    {l:"Productivity",v:35.51,c:"--c-prod"},
+    {l:"Meeting AI",v:21.77,c:"--c-meet"},
+    {l:"Writing AI",v:13.96,c:"--c-write"}
+  ];
+  let h="";
+  rows.forEach(r=>{
+    h+=`<div class="bar-row">
+      <div class="bar-head"><span>${r.l}</span><span class="v" style="color:${css(r.c)}">${r.v.toFixed(2)}</span></div>
+      <div class="bar-track"><div class="bar-fill" data-w="${r.v}" style="background:${css(r.c)}"></div></div>
+    </div>`;
+  });
+  document.getElementById('adopt-bars').innerHTML=h;
+})();
+
+/* ============ CATEGORY TABLE ============ */
+(function(){
+  const rows=[
+    ["AI Assistant",2,20.00,8.85,4.85,93.5,1.9175,false],
+    ["Coding Assistant",2,15.00,7.45,4.75,91.5,2.3508,true],
+    ["Search AI",1,20.00,5.40,4.60,87.0,1.1700,false],
+    ["Productivity",1,10.00,4.20,4.40,82.0,1.8200,false],
+    ["Design AI",2,22.50,6.45,4.65,87.5,1.3361,false],
+    ["Writing AI",2,25.50,5.00,4.55,83.0,1.0306,false],
+    ["Meeting AI",2,17.50,4.60,4.55,84.0,1.1393,false],
+    ["Video AI",2,32.50,7.35,4.65,88.5,0.9812,false],
+    ["Automation",2,20.50,8.05,4.65,92.0,1.7561,false],
+    ["Voice AI",1,22.00,5.80,4.80,87.0,1.1424,false],
+    ["Translation AI",1,9.00,3.90,4.80,81.0,1.8778,false]
+  ];
+  const tb=document.querySelector('#cat-table tbody');
+  rows.forEach(r=>{
+    const [cat,tools_,cost,hrs,rat,prod,roi,lead]=r;
+    const col=catColor(cat);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><span class="cat-dot" style="background:${col}"></span><span class="cat-name" style="color:${col}">${cat}</span></td>
+      <td class="num">${tools_}</td>
+      <td class="num">$${cost.toFixed(2)}</td>
+      <td class="num">${hrs.toFixed(2)}</td>
+      <td class="num">${rat.toFixed(2)}</td>
+      <td class="num">${prod.toFixed(1)}</td>
+      <td class="num ${lead?'lead':''}">${roi.toFixed(4)}${lead?' ★':''}</td>`;
+    tb.appendChild(tr);
+  });
+})();
+
+/* ============ TOOL DIRECTORY ============ */
+(function(){
+  const grid=document.getElementById('toolsGrid');
+  tools.forEach(t=>{
+    const col=catColor(t.category);
+    const el=document.createElement('div');
+    el.className='tool';
+    el.style.setProperty('--accent',col);
+    let flag='';
+    if(t.best==='roi') flag=`<span class="tool-flag" style="color:${css('--gold-bright')};border:1px solid ${css('--gold')}">TOP ROI</span>`;
+    if(t.best==='value') flag=`<span class="tool-flag" style="color:${css('--c-search')};border:1px solid ${css('--c-search')}">BEST VALUE</span>`;
+    el.innerHTML=`
+      ${flag}
+      <div class="tool-name">${t.name}</div>
+      <span class="tool-cat" style="color:${col}">${t.category}</span>
+      <div class="tool-metrics">
+        <div class="tm"><div class="l">Cost / mo</div><div class="n">$${t.monthly}</div></div>
+        <div class="tm"><div class="l">Hrs / wk</div><div class="n">${t.hours}</div></div>
+        <div class="tm"><div class="l">Rating</div><div class="n">${t.rating} <span class="star">★</span></div></div>
+        <div class="tm"><div class="l">Productivity</div><div class="n">${t.productivity}/100</div></div>
+        <div class="tm"><div class="l">ROI score</div><div class="n gold">${t.roi.toFixed(4)}</div></div>
+        <div class="tm"><div class="l">Value index</div><div class="n">${t.pvi.toFixed(2)}</div></div>
+      </div>
+      <div class="tool-foot">
+        <span class="lc" style="color:${lcColor[t.lc]}">● ${t.lc} curve</span>
+        <span class="cph">$${t.cph.toFixed(2)}/hr saved</span>
+      </div>`;
+    grid.appendChild(el);
+  });
+})();
+
+/* ============ REVEAL + BAR ANIMATION ============ */
+(function(){
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.classList.add('in');
+        e.target.querySelectorAll('.bar-fill').forEach(b=>{ b.style.width=b.dataset.w+'%'; });
+        io.unobserve(e.target);
+      }
+    });
+  },{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(s=>io.observe(s));
+})();
+</script>
+</body>
+</html>

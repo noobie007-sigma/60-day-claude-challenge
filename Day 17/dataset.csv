@@ -1,0 +1,19 @@
+Tool_Name,Category,Monthly_Cost_USD,Hours_Saved_Per_Week,User_Rating,Learning_Curve,Primary_Use,Users_Surveyed,Productivity_Score,Annual_Cost_USD
+ChatGPT,AI Assistant,20,8.5,4.8,Low,Research & Content,1200,92,240
+Claude,AI Assistant,20,9.2,4.9,Low,Analysis & Writing,950,95,240
+GitHub Copilot,Coding Assistant,10,6.8,4.7,Low,Code Generation,1100,90,120
+Cursor,Coding Assistant,20,8.1,4.8,Medium,AI Development,780,93,240
+Perplexity,Search AI,20,5.4,4.6,Low,Research,620,87,240
+Notion AI,Productivity,10,4.2,4.4,Low,Documentation,850,82,120
+Midjourney,Design AI,30,7.3,4.8,Medium,Image Generation,540,91,360
+Canva Magic Studio,Design AI,15,5.6,4.5,Low,Graphic Design,720,84,180
+Grammarly,Writing AI,12,3.8,4.6,Low,Writing Improvement,1400,80,144
+Jasper,Writing AI,39,6.2,4.5,Medium,Marketing Content,420,86,468
+Fireflies AI,Meeting AI,18,4.7,4.6,Low,Meeting Notes,350,85,216
+Otter AI,Meeting AI,17,4.5,4.5,Low,Transcription,410,83,204
+Runway,Video AI,35,7.8,4.7,High,Video Editing,280,89,420
+Synthesia,Video AI,30,6.9,4.6,Medium,AI Avatars,260,88,360
+Zapier AI,Automation,25,8.7,4.7,Medium,Workflow Automation,680,94,300
+Make,Automation,16,7.4,4.6,Medium,No-Code Automation,540,90,192
+ElevenLabs,Voice AI,22,5.8,4.8,Low,Voice Generation,300,87,264
+DeepL,Translation AI,9,3.9,4.8,Low,Translation,1000,81,108
