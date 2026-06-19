@@ -259,7 +259,7 @@ Never add, infer, assume, predict, estimate, or complete missing information.
 Generate the complete HTML directly starting with <style>.
 
 
-### Dashboard Output Highlights
+## Dashboard Output Highlights
 
 ### Summary
 
