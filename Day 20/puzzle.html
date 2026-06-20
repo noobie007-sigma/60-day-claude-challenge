@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Face Puzzle Game</title>
+<style>
+  :root{
+    --bg1:#1e1b4b;
+    --bg2:#0f172a;
+    --accent:#6366f1;
+    --accent2:#22d3ee;
+    --good:#22c55e;
+    --bad:#ef4444;
+    --card:#1e293bcc;
+    --text:#e2e8f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{
+    width:100%;height:100%;
+    font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(circle at 20% 20%, var(--bg1), var(--bg2) 70%);
+    color:var(--text);
+    overflow-x:hidden;
+    min-height:100vh;
+  }
+  #app{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    min-height:100vh;
+    padding:20px 12px 60px;
+  }
+  h1{
+    font-size:1.8rem;
+    margin-bottom:6px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-align:center;
+  }
+  .subtitle{
+    color:#94a3b8;
+    margin-bottom:18px;
+    text-align:center;
+    font-size:0.95rem;
+  }
+  .panel{
+    background:var(--card);
+    border:1px solid #334155;
+    border-radius:16px;
+    padding:18px;
+    width:100%;
+    max-width:640px;
+    backdrop-filter:blur(8px);
+    box-shadow:0 8px 30px rgba(0,0,0,0.35);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
+    margin-bottom:18px;
+  }
+  video, #captureCanvas{
+    width:100%;
+    max-width:480px;
+    border-radius:12px;
+    background:#000;
+    transform:scaleX(-1); /* mirror */
+  }
+  #captureCanvas{transform:none;}
+  .btn-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  button{
+    background:linear-gradient(135deg,var(--accent),#4338ca);
+    color:#fff;
+    border:none;
+    padding:11px 20px;
+    border-radius:10px;
+    font-size:0.95rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease, opacity .15s;
+    box-shadow:0 4px 14px rgba(99,102,241,0.35);
+  }
+  button:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(99,102,241,0.5);}
+  button:active{transform:translateY(0);}
+  button.secondary{
+    background:#334155;
+    box-shadow:none;
+  }
+  button.secondary:hover{background:#475569;}
+  button:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+  .diff-options{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .diff-btn{
+    background:#1e293b;
+    border:2px solid #334155;
+    color:var(--text);
+    box-shadow:none;
+  }
+  .diff-btn.active{
+    border-color:var(--accent2);
+    background:#0e7490;
+  }
+  #error-box{
+    color:#fecaca;
+    background:#7f1d1d55;
+    border:1px solid #b91c1c;
+    padding:12px 16px;
+    border-radius:10px;
+    max-width:480px;
+    text-align:center;
+    font-size:0.9rem;
+    display:none;
+  }
+  .hidden{display:none !important;}
+
+  /* HUD */
+  .hud{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    justify-content:center;
+    width:100%;
+    max-width:640px;
+    margin-bottom:14px;
+  }
+  .stat{
+    background:var(--card);
+    border:1px solid #334155;
+    border-radius:12px;
+    padding:10px 16px;
+    text-align:center;
+    min-width:100px;
+  }
+  .stat .label{
+    font-size:0.7rem;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:#94a3b8;
+  }
+  .stat .value{
+    font-size:1.25rem;
+    font-weight:700;
+    color:var(--accent2);
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* puzzle board */
+  #board-wrap{
+    position:relative;
+    width:100%;
+    max-width:480px;
+    aspect-ratio:1/1;
+    margin:0 auto 18px;
+    touch-action:none;
+    user-select:none;
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:0 10px 35px rgba(0,0,0,0.5);
+    border:2px solid #334155;
+    background:#0f172a;
+  }
+  .cell-slot{
+    position:absolute;
+    box-sizing:border-box;
+    border:1px solid rgba(255,255,255,0.04);
+  }
+  .piece{
+    position:absolute;
+    box-sizing:border-box;
+    background-repeat:no-repeat;
+    cursor:grab;
+    border:2px solid rgba(255,255,255,0.15);
+    border-radius:3px;
+    transition:left .18s ease, top .18s ease, border-color .15s ease, box-shadow .15s ease, transform .12s ease;
+    will-change:left, top;
+    z-index:1;
+  }
+  .piece.dragging{
+    cursor:grabbing;
+    border-color:var(--accent2) !important;
+    box-shadow:0 0 0 3px rgba(34,211,238,0.4), 0 10px 25px rgba(0,0,0,0.5);
+    z-index:50;
+    transition:none;
+    transform:scale(1.03);
+  }
+  .piece.correct{
+    border-color:var(--good) !important;
+    box-shadow:0 0 0 2px rgba(34,197,94,0.5);
+  }
+
+  /* win overlay */
+  #win-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(2,6,23,0.85);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+    padding:16px;
+  }
+  .win-card{
+    background:linear-gradient(160deg,#1e293b,#0f172a);
+    border:1px solid var(--accent2);
+    border-radius:18px;
+    padding:30px 26px;
+    max-width:420px;
+    width:100%;
+    text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,0.6);
+  }
+  .win-card h2{
+    font-size:1.6rem;
+    margin-bottom:6px;
+    color:var(--good);
+  }
+  .win-stats{
+    display:flex;
+    justify-content:space-around;
+    margin:18px 0;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .win-stats div{
+    background:#0f172a;
+    padding:10px 14px;
+    border-radius:10px;
+    min-width:90px;
+  }
+  .win-stats .v{font-size:1.2rem;font-weight:700;color:var(--accent2);}
+  .win-stats .l{font-size:0.7rem;color:#94a3b8;text-transform:uppercase;}
+
+  .leaderboard{
+    margin-top:18px;
+    text-align:left;
+    background:#0f172a;
+    border-radius:10px;
+    padding:12px 14px;
+    max-height:180px;
+    overflow-y:auto;
+  }
+  .leaderboard h3{
+    font-size:0.95rem;
+    margin-bottom:8px;
+    color:var(--accent2);
+  }
+  .lb-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:0.82rem;
+    padding:4px 0;
+    border-bottom:1px solid #1e293b;
+    color:#cbd5e1;
+  }
+  .lb-row:last-child{border-bottom:none;}
+  .lb-rank{color:#fbbf24;font-weight:700;margin-right:6px;}
+
+  footer{
+    margin-top:auto;
+    color:#475569;
+    font-size:0.75rem;
+    text-align:center;
+    padding-top:20px;
+  }
+
+  @media (max-width:480px){
+    h1{font-size:1.4rem;}
+    .stat{min-width:80px;padding:8px 10px;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>🧩 Face Puzzle</h1>
+  <p class="subtitle">Snap a selfie, scramble it, and put your face back together!</p>
+
+  <div id="error-box"></div>
+
+  <!-- STEP 1: CAMERA -->
+  <div class="panel" id="camera-panel">
+    <video id="video" autoplay playsinline muted></video>
+    <div class="btn-row">
+      <button id="takePhotoBtn" disabled>📸 Take Photo</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: PREVIEW + DIFFICULTY -->
+  <div class="panel hidden" id="preview-panel">
+    <canvas id="captureCanvas"></canvas>
+    <div class="diff-options" id="diffOptions">
+      <button class="diff-btn" data-size="3">3 × 3</button>
+      <button class="diff-btn active" data-size="4">4 × 4</button>
+      <button class="diff-btn" data-size="5">5 × 5</button>
+    </div>
+    <div class="btn-row">
+      <button id="retakeBtn" class="secondary">🔄 Retake Photo</button>
+      <button id="startPuzzleBtn">▶️ Start Puzzle</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: HUD + BOARD -->
+  <div class="hud hidden" id="hud">
+    <div class="stat"><div class="label">Time</div><div class="value" id="timeVal">00:00.0</div></div>
+    <div class="stat"><div class="label">Moves</div><div class="value" id="movesVal">0</div></div>
+    <div class="stat"><div class="label">Correct</div><div class="value" id="correctVal">0/0</div></div>
+  </div>
+
+  <div id="board-wrap" class="hidden"></div>
+
+  <div class="btn-row hidden" id="gameBtns">
+    <button id="newPhotoBtn" class="secondary">🆕 New Photo</button>
+    <button id="shuffleAgainBtn" class="secondary">🔀 Reshuffle</button>
+  </div>
+
+  <footer>All processing happens locally in your browser. No images are uploaded anywhere.</footer>
+</div>
+
+<!-- WIN OVERLAY -->
+<div id="win-overlay" class="hidden">
+  <div class="win-card">
+    <h2>🎉 Puzzle Solved!</h2>
+    <p style="color:#94a3b8;font-size:0.9rem;">Great job putting your face back together.</p>
+    <div class="win-stats">
+      <div><div class="v" id="finalTime">00:00.0</div><div class="l">Time</div></div>
+      <div><div class="v" id="finalMoves">0</div><div class="l">Moves</div></div>
+      <div><div class="v" id="finalDiff">4×4</div><div class="l">Difficulty</div></div>
+    </div>
+    <div class="leaderboard">
+      <h3>🏆 Best Times</h3>
+      <div id="lbList"></div>
+    </div>
+    <div class="btn-row" style="margin-top:18px;">
+      <button id="playAgainBtn">🔁 Play Again</button>
+      <button id="winNewPhotoBtn" class="secondary">🆕 New Photo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---------- DOM refs ----------
+  const errorBox = document.getElementById('error-box');
+  const video = document.getElementById('video');
+  const takePhotoBtn = document.getElementById('takePhotoBtn');
+  const cameraPanel = document.getElementById('camera-panel');
+  const previewPanel = document.getElementById('preview-panel');
+  const captureCanvas = document.getElementById('captureCanvas');
+  const diffOptions = document.getElementById('diffOptions');
+  const retakeBtn = document.getElementById('retakeBtn');
+  const startPuzzleBtn = document.getElementById('startPuzzleBtn');
+  const hud = document.getElementById('hud');
+  const timeVal = document.getElementById('timeVal');
+  const movesVal = document.getElementById('movesVal');
+  const correctVal = document.getElementById('correctVal');
+  const boardWrap = document.getElementById('board-wrap');
+  const gameBtns = document.getElementById('gameBtns');
+  const newPhotoBtn = document.getElementById('newPhotoBtn');
+  const shuffleAgainBtn = document.getElementById('shuffleAgainBtn');
+  const winOverlay = document.getElementById('win-overlay');
+  const finalTime = document.getElementById('finalTime');
+  const finalMoves = document.getElementById('finalMoves');
+  const finalDiff = document.getElementById('finalDiff');
+  const lbList = document.getElementById('lbList');
+  const playAgainBtn = document.getElementById('playAgainBtn');
+  const winNewPhotoBtn = document.getElementById('winNewPhotoBtn');
+
+  let stream = null;
+  let gridSize = 4;
+  let capturedImage = null; // dataURL
+  let boardSize = 480; // px, recalculated responsively
+  let pieces = []; // {correctIndex, currentIndex, el}
+  let totalCells = 0;
+  let moves = 0;
+  let timerStart = null;
+  let timerInterval = null;
+  let gameActive = false;
+  let dragState = null;
+
+  function showError(msg){
+    errorBox.textContent = msg;
+    errorBox.style.display = 'block';
+  }
+  function clearError(){
+    errorBox.style.display = 'none';
+    errorBox.textContent = '';
+  }
+
+  // ---------- STEP 1: Camera ----------
+  async function startCamera(){
+    clearError();
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width:{ideal:720}, height:{ideal:720} },
+        audio:false
+      });
+      video.srcObject = stream;
+      takePhotoBtn.disabled = false;
+    }catch(err){
+      let msg = 'Could not access camera. ';
+      if(err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'){
+        msg += 'Camera permission was denied. Please allow camera access in your browser settings and reload the page.';
+      } else if(err.name === 'NotFoundError'){
+        msg += 'No camera device was found on this device.';
+      } else if(location.protocol !== 'https:' && location.hostname !== 'localhost'){
+        msg += 'Camera access requires HTTPS or localhost.';
+      } else {
+        msg += err.message || 'Unknown error.';
+      }
+      showError(msg);
+      takePhotoBtn.disabled = true;
+    }
+  }
+
+  takePhotoBtn.addEventListener('click', () => {
+    const size = Math.min(video.videoWidth, video.videoHeight) || 480;
+    captureCanvas.width = size;
+    captureCanvas.height = size;
+    const ctx = captureCanvas.getContext('2d');
+    // crop center square, mirrored to match preview
+    const sx = (video.videoWidth - size) / 2;
+    const sy = (video.videoHeight - size) / 2;
+    ctx.save();
+    ctx.translate(size, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, sx, sy, size, size, 0, 0, size, size);
+    ctx.restore();
+    capturedImage = captureCanvas.toDataURL('image/png');
+
+    cameraPanel.classList.add('hidden');
+    previewPanel.classList.remove('hidden');
+    stopCamera();
+  });
+
+  function stopCamera(){
+    if(stream){
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+  }
+
+  retakeBtn.addEventListener('click', async () => {
+    previewPanel.classList.add('hidden');
+    cameraPanel.classList.remove('hidden');
+    takePhotoBtn.disabled = true;
+    await startCamera();
+  });
+
+  diffOptions.addEventListener('click', (e) => {
+    const btn = e.target.closest('.diff-btn');
+    if(!btn) return;
+    [...diffOptions.children].forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    gridSize = parseInt(btn.dataset.size, 10);
+  });
+
+  startPuzzleBtn.addEventListener('click', () => {
+    previewPanel.classList.add('hidden');
+    initPuzzle();
+  });
+
+  newPhotoBtn.addEventListener('click', resetToCamera);
+  winNewPhotoBtn.addEventListener('click', () => { winOverlay.classList.add('hidden'); resetToCamera(); });
+
+  async function resetToCamera(){
+    stopTimer();
+    boardWrap.classList.add('hidden');
+    hud.classList.add('hidden');
+    gameBtns.classList.add('hidden');
+    boardWrap.innerHTML = '';
+    cameraPanel.classList.remove('hidden');
+    takePhotoBtn.disabled = true;
+    await startCamera();
+  }
+
+  shuffleAgainBtn.addEventListener('click', () => {
+    initPuzzle();
+  });
+
+  playAgainBtn.addEventListener('click', () => {
+    winOverlay.classList.add('hidden');
+    initPuzzle();
+  });
+
+  // ---------- STEP 2/3: Puzzle ----------
+  function computeBoardSize(){
+    const maxW = Math.min(window.innerWidth - 24, 480);
+    boardSize = maxW;
+  }
+
+  function initPuzzle(){
+    computeBoardSize();
+    totalCells = gridSize * gridSize;
+    moves = 0;
+    movesVal.textContent = '0';
+    boardWrap.innerHTML = '';
+    boardWrap.style.width = boardSize + 'px';
+    boardWrap.style.height = boardSize + 'px';
+    boardWrap.classList.remove('hidden');
+    hud.classList.remove('hidden');
+    gameBtns.classList.remove('hidden');
+
+    const cellSize = boardSize / gridSize;
+
+    // build slot backgrounds (subtle grid)
+    for(let r=0;r<gridSize;r++){
+      for(let c=0;c<gridSize;c++){
+        const slot = document.createElement('div');
+        slot.className = 'cell-slot';
+        slot.style.width = cellSize + 'px';
+        slot.style.height = cellSize + 'px';
+        slot.style.left = (c*cellSize) + 'px';
+        slot.style.top = (r*cellSize) + 'px';
+        boardWrap.appendChild(slot);
+      }
+    }
+
+    // build pieces array with correct indices 0..n-1
+    pieces = [];
+    for(let i=0;i<totalCells;i++){
+      pieces.push({ correctIndex: i });
+    }
+
+    // shuffle guaranteeing solvable permutation
+    let order = shuffleSolvable(totalCells);
+
+    pieces.forEach((p, i) => {
+      p.currentIndex = order[i];
+    });
+
+    // create DOM elements positioned at currentIndex, background = correctIndex slice
+    pieces.forEach((p) => {
+      const el = document.createElement('div');
+      el.className = 'piece';
+      el.style.width = cellSize + 'px';
+      el.style.height = cellSize + 'px';
+      el.style.backgroundImage = `url(${capturedImage})`;
+      el.style.backgroundSize = (boardSize) + 'px ' + (boardSize) + 'px';
+      const cr = Math.floor(p.correctIndex / gridSize);
+      const cc = p.correctIndex % gridSize;
+      el.style.backgroundPosition = `-${cc*cellSize}px -${cr*cellSize}px`;
+      positionPieceAt(el, p.currentIndex, cellSize);
+      el.dataset.correctIndex = p.correctIndex;
+      p.el = el;
+      attachDragHandlers(el, p);
+      boardWrap.appendChild(el);
+    });
+
+    updateCorrectCount();
+    startTimer();
+    gameActive = true;
+  }
+
+  function positionPieceAt(el, idx, cellSize){
+    const r = Math.floor(idx / gridSize);
+    const c = idx % gridSize;
+    el.style.left = (c*cellSize) + 'px';
+    el.style.top = (r*cellSize) + 'px';
+    el.dataset.currentIndex = idx;
+  }
+
+  // Fisher-Yates then verify solvability via parity check for sliding-style scramble.
+  // Since this is "swap any two tiles" puzzle (not 15-puzzle sliding), ANY permutation
+  // is solvable by swapping, so we just ensure it's not already solved and not identical to start.
+  function shuffleSolvable(n){
+    let arr = [...Array(n).keys()];
+    do{
+      for(let i=arr.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    } while(isIdentity(arr) || sameAsSolvedTooMuch(arr));
+    return arr;
+  }
+  function isIdentity(arr){
+    return arr.every((v,i)=>v===i);
+  }
+  function sameAsSolvedTooMuch(arr){
+    // ensure at least half pieces are out of place for a real challenge
+    let correctCount = arr.filter((v,i)=>v===i).length;
+    return correctCount > arr.length * 0.3;
+  }
+
+  // ---------- Drag & touch ----------
+  function attachDragHandlers(el, piece){
+    el.addEventListener('mousedown', (e) => startDrag(e, el, piece, false));
+    el.addEventListener('touchstart', (e) => startDrag(e, el, piece, true), {passive:false});
+  }
+
+  function startDrag(e, el, piece, isTouch){
+    if(!gameActive) return;
+    e.preventDefault();
+    const point = isTouch ? e.touches[0] : e;
+    const rect = boardWrap.getBoundingClientRect();
+    const cellSize = boardSize / gridSize;
+
+    dragState = {
+      el, piece, cellSize,
+      offsetX: point.clientX - rect.left - parseFloat(el.style.left),
+      offsetY: point.clientY - rect.top - parseFloat(el.style.top),
+      boardRect: rect
+    };
+    el.classList.add('dragging');
+
+    const moveHandler = (ev) => onDragMove(ev, isTouch);
+    const upHandler = (ev) => onDragEnd(ev, isTouch, moveHandler, upHandler);
+
+    if(isTouch){
+      document.addEventListener('touchmove', moveHandler, {passive:false});
+      document.addEventListener('touchend', upHandler, {passive:false});
+      document.addEventListener('touchcancel', upHandler, {passive:false});
+    } else {
+      document.addEventListener('mousemove', moveHandler);
+      document.addEventListener('mouseup', upHandler);
+    }
+  }
+
+  function onDragMove(e, isTouch){
+    if(!dragState) return;
+    e.preventDefault();
+    const point = isTouch ? e.touches[0] : e;
+    const rect = dragState.boardRect;
+    let x = point.clientX - rect.left - dragState.offsetX;
+    let y = point.clientY - rect.top - dragState.offsetY;
+    const maxPos = boardSize - dragState.cellSize;
+    x = Math.max(-dragState.cellSize*0.4, Math.min(maxPos + dragState.cellSize*0.4, x));
+    y = Math.max(-dragState.cellSize*0.4, Math.min(maxPos + dragState.cellSize*0.4, y));
+    dragState.el.style.left = x + 'px';
+    dragState.el.style.top = y + 'px';
+  }
+
+  function onDragEnd(e, isTouch, moveHandler, upHandler){
+    if(!dragState) return;
+    if(isTouch){
+      document.removeEventListener('touchmove', moveHandler);
+      document.removeEventListener('touchend', upHandler);
+      document.removeEventListener('touchcancel', upHandler);
+    } else {
+      document.removeEventListener('mousemove', moveHandler);
+      document.removeEventListener('mouseup', upHandler);
+    }
+
+    const { el, piece, cellSize } = dragState;
+    el.classList.remove('dragging');
+
+    // determine nearest cell index from current left/top
+    const curLeft = parseFloat(el.style.left);
+    const curTop = parseFloat(el.style.top);
+    let col = Math.round(curLeft / cellSize);
+    let row = Math.round(curTop / cellSize);
+    col = Math.max(0, Math.min(gridSize-1, col));
+    row = Math.max(0, Math.min(gridSize-1, row));
+    const targetIndex = row * gridSize + col;
+    const sourceIndex = parseInt(el.dataset.currentIndex, 10);
+
+    if(targetIndex !== sourceIndex){
+      // find piece currently occupying targetIndex and swap
+      const other = pieces.find(p => p.currentIndex === targetIndex);
+      if(other){
+        other.currentIndex = sourceIndex;
+        positionPieceAt(other.el, sourceIndex, cellSize);
+        updatePieceCorrectness(other);
+      }
+      piece.currentIndex = targetIndex;
+      moves++;
+      movesVal.textContent = String(moves);
+    }
+    positionPieceAt(el, piece.currentIndex, cellSize);
+    updatePieceCorrectness(piece);
+    updateCorrectCount();
+    dragState = null;
+
+    checkWin();
+  }
+
+  function updatePieceCorrectness(piece){
+    if(piece.currentIndex === piece.correctIndex){
+      piece.el.classList.add('correct');
+    } else {
+      piece.el.classList.remove('correct');
+    }
+  }
+
+  function updateCorrectCount(){
+    let correct = 0;
+    pieces.forEach(p => {
+      const isCorrect = p.currentIndex === p.correctIndex;
+      if(isCorrect) correct++;
+      if(isCorrect) p.el.classList.add('correct'); else p.el.classList.remove('correct');
+    });
+    correctVal.textContent = `${correct}/${totalCells}`;
+    return correct;
+  }
+
+  // ---------- Timer ----------
+  function startTimer(){
+    timerStart = Date.now();
+    if(timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      const elapsed = Date.now() - timerStart;
+      timeVal.textContent = formatTime(elapsed);
+    }, 100);
+  }
+  function stopTimer(){
+    if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
+  }
+  function formatTime(ms){
+    const totalSeconds = ms / 1000;
+    const mm = Math.floor(totalSeconds / 60);
+    const ss = Math.floor(totalSeconds % 60);
+    const tenth = Math.floor((totalSeconds - Math.floor(totalSeconds)) * 10);
+    return `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}.${tenth}`;
+  }
+
+  // ---------- Win detection ----------
+  function checkWin(){
+    const correct = updateCorrectCount();
+    if(correct === totalCells){
+      gameActive = false;
+      stopTimer();
+      const elapsedMs = Date.now() - timerStart;
+      showWin(elapsedMs);
+    }
+  }
+
+  function showWin(elapsedMs){
+    finalTime.textContent = formatTime(elapsedMs);
+    finalMoves.textContent = String(moves);
+    finalDiff.textContent = `${gridSize}×${gridSize}`;
+    saveScore(elapsedMs, moves, gridSize);
+    renderLeaderboard();
+    winOverlay.classList.remove('hidden');
+  }
+
+  // ---------- Leaderboard / localStorage ----------
+  const LB_KEY = 'facePuzzleLeaderboard_v1';
+
+  function loadScores(){
+    try{
+      const raw = localStorage.getItem(LB_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){ return []; }
+  }
+  function saveScore(elapsedMs, moveCount, diff){
+    let scores = loadScores();
+    scores.push({
+      time: elapsedMs,
+      moves: moveCount,
+      difficulty: `${diff}×${diff}`,
+      date: new Date().toLocaleDateString()
+    });
+    scores.sort((a,b) => a.time - b.time);
+    scores = scores.slice(0,5);
+    try{ localStorage.setItem(LB_KEY, JSON.stringify(scores)); }catch(e){}
+  }
+  function renderLeaderboard(){
+    const scores = loadScores();
+    if(scores.length === 0){
+      lbList.innerHTML = '<div class="lb-row">No scores yet — you just set the bar!</div>';
+      return;
+    }
+    lbList.innerHTML = scores.map((s, i) => `
+      <div class="lb-row">
+        <span><span class="lb-rank">#${i+1}</span>${formatTime(s.time)} · ${s.difficulty}</span>
+        <span>${s.moves} moves · ${s.date}</span>
+      </div>
+    `).join('');
+  }
+
+  // ---------- Resize handling ----------
+  window.addEventListener('resize', () => {
+    if(!boardWrap.classList.contains('hidden') && pieces.length){
+      const oldSize = boardSize;
+      computeBoardSize();
+      const scale = boardSize / oldSize;
+      boardWrap.style.width = boardSize + 'px';
+      boardWrap.style.height = boardSize + 'px';
+      const cellSize = boardSize / gridSize;
+      // reposition slots
+      [...boardWrap.querySelectorAll('.cell-slot')].forEach((slot, idx) => {
+        const r = Math.floor(idx/gridSize), c = idx%gridSize;
+        slot.style.width = cellSize+'px';
+        slot.style.height = cellSize+'px';
+        slot.style.left = (c*cellSize)+'px';
+        slot.style.top = (r*cellSize)+'px';
+      });
+      pieces.forEach(p => {
+        p.el.style.width = cellSize+'px';
+        p.el.style.height = cellSize+'px';
+        p.el.style.backgroundSize = boardSize+'px '+boardSize+'px';
+        const cr = Math.floor(p.correctIndex/gridSize), cc = p.correctIndex%gridSize;
+        p.el.style.backgroundPosition = `-${cc*cellSize}px -${cr*cellSize}px`;
+        positionPieceAt(p.el, p.currentIndex, cellSize);
+      });
+    }
+  });
+
+  // ---------- Init ----------
+  renderLeaderboard();
+  startCamera();
+
+})();
+</script>
+</body>
+</html>
