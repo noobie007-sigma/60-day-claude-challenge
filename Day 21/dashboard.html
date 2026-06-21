@@ -1,0 +1,645 @@
+<style>
+  :root{
+    --bg:#0a0c11;
+    --surface:#12151c;
+    --surface-2:#171b24;
+    --border:#232834;
+    --text:#e8eaf0;
+    --text-dim:#8993a8;
+    --text-faint:#5c6477;
+    --cyan:#5eead4;
+    --violet:#8b7cff;
+    --amber:#f5a623;
+    --red:#ff6363;
+    --green:#4ade80;
+    --mono:'JetBrains Mono','SF Mono',Consolas,monospace;
+    --disp:'Space Grotesk',Inter,sans-serif;
+    --body:'Inter',-apple-system,sans-serif;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);}
+  .dfp-root{
+    background:
+      radial-gradient(900px 500px at 10% -10%, rgba(139,124,255,0.10), transparent 60%),
+      radial-gradient(900px 500px at 90% 0%, rgba(94,234,212,0.08), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.5;
+    padding:28px 18px 80px;
+    min-height:100vh;
+  }
+  .dfp-wrap{max-width:1180px;margin:0 auto;}
+
+  /* ---------- Header ---------- */
+  .dfp-header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;margin-bottom:22px;}
+  .dfp-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase;display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .dfp-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .dfp-title{font-family:var(--disp);font-weight:700;font-size:clamp(24px,3.2vw,34px);letter-spacing:-0.02em;}
+  .dfp-sub{color:var(--text-dim);font-size:14px;margin-top:6px;max-width:520px;}
+  .dfp-scope{
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;
+    padding:14px 18px;font-size:12.5px;color:var(--text-dim);max-width:340px;
+  }
+  .dfp-scope b{color:var(--text);font-family:var(--mono);font-weight:600;}
+  .dfp-scope .row{display:flex;justify-content:space-between;margin-top:4px;}
+
+  .dfp-banner{
+    border:1px solid rgba(245,166,35,0.3);background:rgba(245,166,35,0.06);
+    border-radius:12px;padding:12px 16px;font-size:12.5px;color:#e8c98a;
+    display:flex;gap:10px;align-items:flex-start;margin-bottom:26px;
+  }
+  .dfp-banner svg{flex-shrink:0;margin-top:1px;}
+
+  /* ---------- Stat strip ---------- */
+  .dfp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
+  .dfp-stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;}
+  .dfp-stat .lbl{font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+  .dfp-stat .val{font-family:var(--mono);font-size:24px;font-weight:600;color:var(--text);}
+  .dfp-stat .sub{font-size:11.5px;color:var(--text-dim);margin-top:4px;}
+
+  /* ---------- Section shell ---------- */
+  .dfp-section{margin-bottom:26px;}
+  .dfp-section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+  .dfp-section-title{font-family:var(--disp);font-weight:600;font-size:17px;display:flex;align-items:center;gap:9px;}
+  .dfp-section-title .idx{font-family:var(--mono);font-size:11px;color:var(--text-faint);border:1px solid var(--border);border-radius:5px;padding:2px 6px;}
+  .dfp-tag{font-family:var(--mono);font-size:10.5px;padding:3px 9px;border-radius:20px;border:1px solid;letter-spacing:.04em;}
+  .tag-fact{color:var(--cyan);border-color:rgba(94,234,212,.35);background:rgba(94,234,212,.06);}
+  .tag-estimate{color:var(--amber);border-color:rgba(245,166,35,.35);background:rgba(245,166,35,.06);}
+
+  .dfp-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;}
+
+  /* ---------- Score gauges ---------- */
+  .dfp-scores{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:26px;}
+  .score-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;display:flex;align-items:center;gap:20px;}
+  .score-card .gauge-wrap{position:relative;width:128px;height:128px;flex-shrink:0;}
+  .score-card svg{transform:rotate(-90deg);}
+  .score-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .score-num .n{font-family:var(--mono);font-weight:600;font-size:28px;}
+  .score-num .of{font-size:10px;color:var(--text-faint);margin-top:-2px;}
+  .score-meta .name{font-family:var(--disp);font-weight:600;font-size:15px;margin-bottom:6px;}
+  .score-meta .band{font-family:var(--mono);font-size:12px;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:10px;}
+  .score-meta .desc{font-size:12.5px;color:var(--text-dim);max-width:230px;}
+  .band-minimal{color:var(--green);background:rgba(74,222,128,.1);}
+  .band-moderate{color:#e8d44d;background:rgba(232,212,77,.1);}
+  .band-significant{color:var(--amber);background:rgba(245,166,35,.1);}
+  .band-extensive{color:var(--red);background:rgba(255,99,99,.1);}
+  .band-weak{color:var(--red);background:rgba(255,99,99,.1);}
+  .band-fair{color:var(--amber);background:rgba(245,166,35,.1);}
+  .band-good{color:#e8d44d;background:rgba(232,212,77,.1);}
+  .band-strong{color:var(--green);background:rgba(74,222,128,.1);}
+
+  /* ---------- Heatmap ---------- */
+  .heatmap-grid{display:grid;grid-template-columns:160px repeat(13,1fr);gap:4px;overflow-x:auto;}
+  .hm-cell{aspect-ratio:1;border-radius:5px;min-width:26px;}
+  .hm-label{font-size:10.5px;color:var(--text-dim);display:flex;align-items:center;font-family:var(--mono);padding-right:6px;}
+  .hm-app-label{font-size:9.5px;color:var(--text-faint);writing-mode:vertical-rl;text-orientation:mixed;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;}
+  .heatmap-legend{display:flex;gap:14px;margin-top:14px;font-size:11px;color:var(--text-dim);align-items:center;flex-wrap:wrap;}
+  .heatmap-legend .sw{width:12px;height:12px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-2px;}
+
+  /* ---------- Company ranking ---------- */
+  .rank-row{display:grid;grid-template-columns:170px 1fr 50px;align-items:center;gap:12px;margin-bottom:12px;}
+  .rank-row:last-child{margin-bottom:0;}
+  .rank-name{font-size:13px;font-weight:600;}
+  .rank-services{font-size:10.5px;color:var(--text-faint);font-family:var(--mono);}
+  .rank-bar-bg{height:10px;background:var(--surface-2);border-radius:6px;overflow:hidden;border:1px solid var(--border);}
+  .rank-bar-fill{height:100%;border-radius:6px;}
+  .rank-pct{font-family:var(--mono);font-size:12.5px;text-align:right;color:var(--text-dim);}
+
+  /* ---------- Data matrix table ---------- */
+  .dfp-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .dfp-table th{text-align:left;font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);padding:0 12px 10px;border-bottom:1px solid var(--border);font-weight:500;}
+  .dfp-table td{padding:12px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text-dim);}
+  .dfp-table tr:last-child td{border-bottom:none;}
+  .dfp-table .co{color:var(--text);font-weight:600;font-size:13px;}
+  .dfp-table .svc-pill{display:inline-block;background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:5px;margin:1px 3px 1px 0;}
+
+  /* ---------- Risk radar ---------- */
+  .radar-wrap{display:flex;gap:28px;align-items:center;flex-wrap:wrap;}
+  .radar-legend{flex:1;min-width:220px;display:flex;flex-direction:column;gap:10px;}
+  .radar-legend-row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;}
+  .radar-legend-row .lab{color:var(--text-dim);}
+  .radar-legend-row .v{font-family:var(--mono);font-weight:600;}
+
+  /* ---------- Digital twin ---------- */
+  .twin-wrap{display:grid;grid-template-columns:1fr 2fr;gap:22px;}
+  .twin-avatar{background:radial-gradient(circle at 30% 20%, rgba(139,124,255,.25), rgba(94,234,212,.08) 60%, transparent 80%);border:1px solid var(--border);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px;text-align:center;}
+  .twin-avatar .glyph{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--cyan));display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:700;font-size:22px;color:#0a0c11;margin-bottom:14px;}
+  .twin-avatar .name{font-family:var(--disp);font-weight:600;font-size:15px;}
+  .twin-avatar .conf{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);margin-top:6px;}
+  .twin-traits{display:flex;flex-direction:column;gap:10px;}
+  .trait-row{display:flex;gap:12px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;align-items:flex-start;}
+  .trait-row .k{width:120px;flex-shrink:0;font-size:11.5px;color:var(--text-faint);font-family:var(--mono);padding-top:1px;}
+  .trait-row .v{font-size:13px;color:var(--text);}
+  .trait-row .v .basis{display:block;font-size:11px;color:var(--text-dim);margin-top:3px;}
+
+  /* ---------- Asset cards ---------- */
+  .asset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .asset-card{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;overflow:hidden;}
+  .asset-card .rank{position:absolute;top:10px;right:14px;font-family:var(--mono);font-size:26px;font-weight:700;color:rgba(255,255,255,.05);}
+  .asset-card .title{font-family:var(--disp);font-weight:600;font-size:14px;margin-bottom:6px;}
+  .asset-card .desc{font-size:12px;color:var(--text-dim);margin-bottom:12px;}
+  .asset-card .meter-bg{height:6px;background:var(--surface);border-radius:4px;overflow:hidden;border:1px solid var(--border);}
+  .asset-card .meter-fill{height:100%;border-radius:4px;}
+  .asset-card .meter-lbl{display:flex;justify-content:space-between;font-size:10px;font-family:var(--mono);color:var(--text-faint);margin-top:5px;}
+
+  /* ---------- Simulator ---------- */
+  .sim-wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;}
+  .sim-toggles{display:flex;flex-direction:column;gap:10px;}
+  .sim-toggle{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:border-color .15s ease;}
+  .sim-toggle:hover{border-color:rgba(94,234,212,.4);}
+  .sim-toggle input{accent-color:var(--cyan);width:16px;height:16px;flex-shrink:0;cursor:pointer;}
+  .sim-toggle .t-title{font-size:13px;font-weight:600;}
+  .sim-toggle .t-desc{font-size:11.5px;color:var(--text-dim);margin-top:2px;}
+  .sim-toggle .t-pts{font-family:var(--mono);font-size:12px;color:var(--green);margin-left:auto;flex-shrink:0;white-space:nowrap;}
+  .sim-result{background:var(--surface-2);border:1px solid var(--border);border-radius:14px;padding:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+  .sim-result .lbl{font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;}
+  .sim-result .big{font-family:var(--mono);font-weight:700;font-size:42px;margin:10px 0 4px;background:linear-gradient(135deg,var(--cyan),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sim-result .band{font-family:var(--mono);font-size:12px;padding:4px 12px;border-radius:20px;margin-bottom:14px;}
+  .sim-bar-bg{width:100%;height:8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+  .sim-bar-fill{height:100%;background:linear-gradient(90deg,var(--amber),var(--cyan));border-radius:6px;transition:width .4s ease;}
+  .sim-delta{font-family:var(--mono);font-size:12px;color:var(--text-dim);margin-top:10px;}
+
+  /* ---------- WOW insights ---------- */
+  .wow-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .wow-card{background:linear-gradient(160deg, rgba(139,124,255,.08), rgba(94,234,212,.04));border:1px solid var(--border);border-radius:14px;padding:16px;}
+  .wow-card .icon{font-size:18px;margin-bottom:8px;display:block;}
+  .wow-card p{font-size:12.5px;color:var(--text-dim);line-height:1.55;}
+  .wow-card .tag-estimate{margin-top:10px;display:inline-block;}
+
+  /* ---------- Verdict ---------- */
+  .verdict-card{background:linear-gradient(135deg, rgba(139,124,255,.10), rgba(94,234,212,.05));border:1px solid var(--border);border-radius:18px;padding:26px;}
+  .verdict-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:14px;}
+  .verdict-title{font-family:var(--disp);font-weight:700;font-size:19px;}
+  .verdict-pill{font-family:var(--mono);font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid;}
+  .verdict-text{font-size:13.5px;color:var(--text-dim);max-width:760px;margin-bottom:16px;}
+  .verdict-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .verdict-stat{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+  .verdict-stat .l{font-size:10.5px;color:var(--text-faint);font-family:var(--mono);text-transform:uppercase;}
+  .verdict-stat .v{font-family:var(--mono);font-size:16px;font-weight:600;margin-top:4px;}
+
+  .dfp-footer{margin-top:30px;padding-top:18px;border-top:1px solid var(--border);font-size:11px;color:var(--text-faint);text-align:center;line-height:1.7;}
+
+  @media (max-width: 880px){
+    .dfp-stats{grid-template-columns:1fr 1fr;}
+    .dfp-scores{grid-template-columns:1fr;}
+    .twin-wrap{grid-template-columns:1fr;}
+    .sim-wrap{grid-template-columns:1fr;}
+    .asset-grid{grid-template-columns:1fr 1fr;}
+    .wow-grid{grid-template-columns:1fr;}
+    .verdict-grid{grid-template-columns:1fr;}
+    .radar-wrap{flex-direction:column;}
+  }
+  @media (max-width: 560px){
+    .asset-grid{grid-template-columns:1fr;}
+    .dfp-stats{grid-template-columns:1fr;}
+  }
+</style>
+
+<div class="dfp-root">
+  <div class="dfp-wrap">
+
+    <!-- HEADER -->
+    <div class="dfp-header">
+      <div>
+        <div class="dfp-eyebrow"><span class="dot"></span>DIGITAL FOOTPRINT REPORT</div>
+        <div class="dfp-title">Privacy &amp; Exposure Dashboard</div>
+        <div class="dfp-sub">A structured read of the services you reported using — built entirely from that list, not from any private or third-party database.</div>
+      </div>
+      <div class="dfp-scope">
+        <div class="row"><span>Source</span><b>User-reported list</b></div>
+        <div class="row"><span>Services analyzed</span><b>13</b></div>
+        <div class="row"><span>Generated</span><b id="dfp-date"></b></div>
+      </div>
+    </div>
+
+    <div class="dfp-banner">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01M10.3 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0z" stroke="#f5a623" stroke-width="1.6"/></svg>
+      <div>This report does not access any private database or live account data. Every score below is a heuristic built only from the 13 services you listed. Anything beyond those facts — habits, demographics, spending — is marked <b style="color:#e8c98a">Estimate</b> and stated without certainty.</div>
+    </div>
+
+    <!-- STAT STRIP -->
+    <div class="dfp-stats">
+      <div class="dfp-stat"><div class="lbl">Total services used</div><div class="val">13</div><div class="sub">Fact — as reported</div></div>
+      <div class="dfp-stat"><div class="lbl">Parent companies</div><div class="val">9</div><div class="sub">Inferred ownership groups</div></div>
+      <div class="dfp-stat"><div class="lbl">Ecosystem concentration</div><div class="val">23%</div><div class="sub">Alphabet/Google holds the largest single share</div></div>
+      <div class="dfp-stat"><div class="lbl">Est. tracking surface</div><div class="val">High</div><div class="sub">Estimate — 9 companies × 6 data categories</div></div>
+    </div>
+
+    <!-- SCORES -->
+    <div class="dfp-scores">
+      <div class="score-card">
+        <div class="gauge-wrap">
+          <svg width="128" height="128" viewBox="0 0 128 128">
+            <circle cx="64" cy="64" r="54" fill="none" stroke="#1c2029" stroke-width="12"/>
+            <circle cx="64" cy="64" r="54" fill="none" stroke="#f5a623" stroke-width="12" stroke-linecap="round"
+              stroke-dasharray="339.3" stroke-dashoffset="95" />
+          </svg>
+          <div class="score-num"><span class="n">72</span><span class="of">/ 100</span></div>
+        </div>
+        <div class="score-meta">
+          <div class="name">Digital Footprint Score</div>
+          <div class="band band-significant">🟠 Significant</div>
+          <div class="desc">A broad spread across social, shopping, payments, entertainment and media — wide enough that most of your activity sits with one of a small number of companies.</div>
+        </div>
+      </div>
+      <div class="score-card">
+        <div class="gauge-wrap">
+          <svg width="128" height="128" viewBox="0 0 128 128">
+            <circle cx="64" cy="64" r="54" fill="none" stroke="#1c2029" stroke-width="12"/>
+            <circle cx="64" cy="64" r="54" fill="none" stroke="#ff6363" stroke-width="12" stroke-linecap="round"
+              id="priv-ring" stroke-dasharray="339.3" stroke-dashoffset="210" />
+          </svg>
+          <div class="score-num"><span class="n" id="priv-num">38</span><span class="of">/ 100</span></div>
+        </div>
+        <div class="score-meta">
+          <div class="name">Privacy Score</div>
+          <div class="band band-fair" id="priv-band">🟠 Fair</div>
+          <div class="desc" id="priv-desc">Estimate, based on category overlap and number of companies with access to overlapping data. Try the simulator below to see how specific changes could move this.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. EXPOSURE HEATMAP -->
+    <div class="dfp-section">
+      <div class="dfp-section-head">
+        <div class="dfp-section-title"><span class="idx">03</span>Exposure Heatmap</div>
+        <span class="dfp-tag tag-estimate">Estimate</span>
+      </div>
+      <div class="dfp-card">
+        <div style="overflow-x:auto;">
+          <div class="heatmap-grid" id="heatmap"></div>
+        </div>
+        <div class="heatmap-legend">
+          <span><span class="sw" style="background:#1c2029"></span>None</span>
+          <span><span class="sw" style="background:#2a6e63"></span>Low</span>
+          <span><span class="sw" style="background:#e8d44d"></span>Moderate</span>
+          <span><span class="sw" style="background:#f5a623"></span>High</span>
+          <span><span class="sw" style="background:#ff6363"></span>Very high</span>
+          <span style="margin-left:auto;color:var(--text-faint);">Rows = data category · Columns = app</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. COMPANY EXPOSURE RANKING -->
+    <div class="dfp-section">
+      <div class="dfp-section-head">
+        <div class="dfp-section-title"><span class="idx">04</span>Company Exposure Ranking</div>
+        <span class="dfp-tag tag-fact">Fact: ownership · Estimate: share of exposure</span>
+      </div>
+      <div class="dfp-card" id="rank-list"></div>
+    </div>
+
+    <!-- 5. DATA COLLECTION MATRIX -->
+    <div class="dfp-section">
+      <div class="dfp-section-head">
+        <div class="dfp-section-title"><span class="idx">05</span>Data Collection Matrix</div>
+        <span class="dfp-tag tag-estimate">Estimate — typical categories for this service type</span>
+      </div>
+      <div class="dfp-card" style="overflow-x:auto;">
+        <table class="dfp-table" id="matrix-table"></table>
+      </div>
+    </div>
+
+    <!-- 6. RISK RADAR -->
+    <div class="dfp-section">
+      <div class="dfp-section-head">
+        <div class="dfp-section-title"><span class="idx">06</span>Risk Radar</div>
+        <span class="dfp-tag tag-estimate">Estimate</span>
+      </div>
+      <div class="dfp-card radar-wrap">
+        <svg id="radar-svg" width="300" height="300" viewBox="0 0 300 300"></svg>
+        <div class="radar-legend" id="radar-legend"></div>
+      </div>
+    </div>
+
+    <!-- 7. DIGITAL TWIN PROFILE -->
+    <div class="dfp-section">
+      <div class="dfp-section-head">
+        <div class="dfp-section-title"><span class="idx">07</span>Digital Twin Profile</div>
+        <span class="dfp-tag tag-estimate">Estimate — low to moderate confidence</span>
+      </div>
+      <div class="dfp-card twin-wrap">
+        <div class="twin-avatar">
+          <div class="glyph">DT</div>
+          <div class="name">Inferred Persona</div>
+          <div class="conf">CONFIDENCE: LOW–MODERATE</div>
+        </div>
+        <div class="twin-traits">
+          <div class="trait-row"><div class="k">Likely region</div><div class="v">India (Estimate)<span class="basis">Based on the strong presence of India-centric services — Flipkart, Myntra and PayTM are dominant in the Indian market.</span></div></div>
+          <div class="trait-row"><div class="k">Likely age range</div><div class="v">Teen to young adult (Estimate, low confidence)<span class="basis">Smash Karts skews toward a younger player base, alongside Discord and Spotify usage common in that age bracket. Not enough information to narrow this further.</span></div></div>
+          <div class="trait-row"><div class="k">Lifestyle signal</div><div class="v">Socially active, entertainment-engaged, online shopper (Estimate)<span class="basis">Combination of social apps, video/music streaming and e-commerce/payment apps.</span></div></div>
+          <div class="trait-row"><div class="k">Spending behavior</div><div class="v">Digital-payments user with e-commerce activity (Estimate)<span class="basis">PayTM plus Flipkart and Myntra suggest comfort with online transactions; exact spend cannot be inferred.</span></div></div>
+          <div class="trait-row"><div class="k">Occupation / income</div><div class="v">Not enough information provided.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. MOST VALUABLE DATA ASSETS -->
+    <div class="dfp-section">
+      <div class="dfp-section-head">
+        <div class="dfp-section-title"><span class="idx">08</span>Most Valuable Data Assets</div>
+        <span class="dfp-tag tag-estimate">Estimate — ranked by typical monetization value</span>
+      </div>
+      <div class="asset-grid" id="asset-grid"></div>
+    </div>
+
+    <!-- PRIVACY IMPROVEMENT SIMULATOR -->
+    <div class="dfp-section">
+      <div class="dfp-section-head">
+        <div class="dfp-section-title"><span class="idx">09</span>Privacy Improvement Plan — Simulator</div>
+        <span class="dfp-tag tag-fact">Interactive</span>
+      </div>
+      <div class="dfp-card sim-wrap">
+        <div class="sim-toggles" id="sim-toggles"></div>
+        <div class="sim-result">
+          <div class="lbl">Projected Privacy Score</div>
+          <div class="big" id="sim-score">38</div>
+          <div class="band band-fair" id="sim-band">🟠 Fair</div>
+          <div class="sim-bar-bg"><div class="sim-bar-fill" id="sim-bar" style="width:38%"></div></div>
+          <div class="sim-delta" id="sim-delta">No changes selected yet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WOW INSIGHTS -->
+    <div class="dfp-section">
+      <div class="dfp-section-head">
+        <div class="dfp-section-title"><span class="idx">10</span>WOW Insights</div>
+        <span class="dfp-tag tag-estimate">Estimate</span>
+      </div>
+      <div class="wow-grid">
+        <div class="wow-card"><span class="icon">🔎</span><p>Alphabet/Google touches the largest single slice of your footprint — Search, YouTube and Photos together — giving one company visibility into intent, viewing habits and personal media at once.</p><span class="dfp-tag tag-estimate">Estimate</span></div>
+        <div class="wow-card"><span class="icon">💳</span><p>Your financial and shopping signal sits with just two ownership groups (One97/PayTM and Walmart's Flipkart group), concentrating spend-related visibility rather than spreading it out.</p><span class="dfp-tag tag-estimate">Estimate</span></div>
+        <div class="wow-card"><span class="icon">🎮</span><p>A gaming app like Smash Karts in the mix is a weak but real signal advertisers sometimes use to infer a younger-skewing audience segment.</p><span class="dfp-tag tag-estimate">Estimate, low confidence</span></div>
+      </div>
+    </div>
+
+    <!-- FINAL VERDICT -->
+    <div class="dfp-section">
+      <div class="dfp-section-head">
+        <div class="dfp-section-title"><span class="idx">11</span>Final Verdict</div>
+      </div>
+      <div class="verdict-card">
+        <div class="verdict-top">
+          <div class="verdict-title">Significant footprint, fair-and-improvable privacy posture</div>
+          <div class="verdict-pill band-significant">🟠 Footprint: Significant (72/100)</div>
+        </div>
+        <div class="verdict-text">Across 13 services and 9 inferred parent companies, your exposure is broad rather than extreme — concentrated mainly in Alphabet/Google and, separately, in payments and shopping through PayTM and the Flipkart group. Privacy score sits at Fair, mainly because a handful of companies can each see more than one type of activity (search + video + photos, or payments + shopping). The Improvement Plan above could realistically move the privacy score from Fair into Good territory. All demographic and behavioral statements in this report are estimates, never certainties, and nothing here was pulled from a private or live database.</div>
+        <div class="verdict-grid">
+          <div class="verdict-stat"><div class="l">Footprint band</div><div class="v">🟠 Significant</div></div>
+          <div class="verdict-stat"><div class="l">Privacy band</div><div class="v">🟠 Fair</div></div>
+          <div class="verdict-stat"><div class="l">Top exposure holder</div><div class="v">Alphabet / Google</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dfp-footer">
+      Built only from the service list provided. No private databases, accounts, or live data were accessed at any point.<br/>
+      All scores are heuristic estimates for awareness purposes, not certainties — and not a substitute for each platform's own privacy settings.
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  document.getElementById('dfp-date').textContent = new Date().toLocaleDateString('en-IN', {year:'numeric', month:'short', day:'numeric'});
+
+  // ---------- DATA ----------
+  var apps = ["Instagram","YouTube","Discord","WhatsApp","Reddit","Spotify","X","Smash Karts","Flipkart","Myntra","Google Search","PayTM","Google Photos"];
+  var categories = ["Social/Identity","Financial","Shopping","Entertainment","Communication","Location (est.)"];
+  // exposure intensity per category per app: 0 none,1 low,2 moderate,3 high,4 very high
+  var hm = {
+    "Social/Identity":     [4,1,2,2,3,0,3,1,0,0,0,0,1],
+    "Financial":           [0,0,0,0,0,1,0,0,3,2,0,4,0],
+    "Shopping":            [1,0,0,0,1,0,1,0,4,4,1,2,0],
+    "Entertainment":       [2,4,1,0,3,4,2,3,1,1,0,0,1],
+    "Communication":       [2,0,3,4,1,0,2,1,0,0,0,1,0],
+    "Location (est.)":     [1,1,1,1,0,0,1,0,2,2,1,2,1]
+  };
+  var hmColors = ["#1c2029","#2a6e63","#e8d44d","#f5a623","#ff6363"];
+
+  var companies = [
+    {name:"Alphabet / Google", services:["YouTube","Google Search","Google Photos"], pct:23, color:"#5eead4"},
+    {name:"Meta", services:["Instagram","WhatsApp"], pct:15, color:"#8b7cff"},
+    {name:"Walmart (Flipkart Group)", services:["Flipkart","Myntra"], pct:15, color:"#f5a623"},
+    {name:"One97 / PayTM", services:["PayTM"], pct:8, color:"#ff6363"},
+    {name:"Discord Inc.", services:["Discord"], pct:8, color:"#5eead4"},
+    {name:"Reddit Inc.", services:["Reddit"], pct:8, color:"#8b7cff"},
+    {name:"Spotify", services:["Spotify"], pct:8, color:"#f5a623"},
+    {name:"X Corp", services:["X"], pct:8, color:"#ff6363"},
+    {name:"Tutotoons (Smash Karts)", services:["Smash Karts"], pct:7, color:"#5eead4"}
+  ];
+
+  var matrix = [
+    {co:"Alphabet / Google", svc:["YouTube","Google Search","Google Photos"], data:"Search & watch history, photo metadata, device info, approximate location when permitted"},
+    {co:"Meta", svc:["Instagram","WhatsApp"], data:"Social graph, content interactions, message metadata, ad-interest signals"},
+    {co:"Walmart (Flipkart Group)", svc:["Flipkart","Myntra"], data:"Purchase & browse history, delivery address, payment method type"},
+    {co:"One97 / PayTM", svc:["PayTM"], data:"Transaction history, merchant interactions, linked bank/UPI metadata"},
+    {co:"Discord Inc.", svc:["Discord"], data:"Server/community memberships, chat activity patterns, voice usage metadata"},
+    {co:"Reddit Inc.", svc:["Reddit"], data:"Interests, browsing & voting patterns, community participation"},
+    {co:"Spotify", svc:["Spotify"], data:"Listening history, music taste profile, usage time patterns"},
+    {co:"X Corp", svc:["X"], data:"Public posts, engagement patterns, topic interests"},
+    {co:"Tutotoons", svc:["Smash Karts"], data:"Gameplay activity; possible age-bracket signal from audience skew"}
+  ];
+
+  var radarData = [
+    {label:"Social graph exposure", value:85},
+    {label:"Financial exposure", value:70},
+    {label:"Behavioral profiling", value:65},
+    {label:"Communication exposure", value:60},
+    {label:"Identity / media exposure", value:55},
+    {label:"Location exposure (est.)", value:30}
+  ];
+
+  var assets = [
+    {title:"Financial & transaction data", desc:"PayTM — payment history, merchant patterns", value:92},
+    {title:"Purchase & shopping behavior", desc:"Flipkart, Myntra — browse & buy patterns", value:85},
+    {title:"Social graph", desc:"Instagram, WhatsApp, Discord, X — relationships & contacts", value:80},
+    {title:"Entertainment preferences", desc:"YouTube, Spotify, Reddit — taste & attention data", value:68},
+    {title:"Personal photos & media", desc:"Google Photos — personal media, metadata", value:60},
+    {title:"Search intent", desc:"Google Search — real-time interests & needs", value:75}
+  ];
+
+  // ---------- HEATMAP ----------
+  var hmEl = document.getElementById('heatmap');
+  hmEl.style.gridTemplateColumns = "160px repeat(" + apps.length + ", 1fr)";
+  hmEl.appendChild(document.createElement('div'));
+  apps.forEach(function(a){
+    var d = document.createElement('div');
+    d.className = 'hm-app-label';
+    d.textContent = a;
+    hmEl.appendChild(d);
+  });
+  categories.forEach(function(cat){
+    var lbl = document.createElement('div');
+    lbl.className = 'hm-label';
+    lbl.textContent = cat;
+    hmEl.appendChild(lbl);
+    hm[cat].forEach(function(v){
+      var c = document.createElement('div');
+      c.className = 'hm-cell';
+      c.style.background = hmColors[v];
+      c.title = cat + ": level " + v;
+      hmEl.appendChild(c);
+    });
+  });
+
+  // ---------- COMPANY RANKING ----------
+  var rankEl = document.getElementById('rank-list');
+  companies.sort(function(a,b){ return b.pct - a.pct; });
+  companies.forEach(function(c){
+    var row = document.createElement('div');
+    row.className = 'rank-row';
+    row.innerHTML =
+      '<div><div class="rank-name">' + c.name + '</div><div class="rank-services">' + c.services.join(' · ') + '</div></div>' +
+      '<div class="rank-bar-bg"><div class="rank-bar-fill" style="width:' + c.pct + '%;background:' + c.color + '"></div></div>' +
+      '<div class="rank-pct">' + c.pct + '%</div>';
+    rankEl.appendChild(row);
+  });
+
+  // ---------- MATRIX TABLE ----------
+  var tEl = document.getElementById('matrix-table');
+  var thead = '<thead><tr><th>Company</th><th>Services</th><th>Likely data categories (Estimate)</th></tr></thead>';
+  var rows = matrix.map(function(m){
+    var pills = m.svc.map(function(s){ return '<span class="svc-pill">' + s + '</span>'; }).join('');
+    return '<tr><td class="co">' + m.co + '</td><td>' + pills + '</td><td>' + m.data + '</td></tr>';
+  }).join('');
+  tEl.innerHTML = thead + '<tbody>' + rows + '</tbody>';
+
+  // ---------- RADAR ----------
+  (function(){
+    var svg = document.getElementById('radar-svg');
+    var ns = 'http://www.w3.org/2000/svg';
+    var cx = 150, cy = 150, R = 105;
+    var n = radarData.length;
+    function pt(i, r){
+      var ang = (-90 + i * (360/n)) * Math.PI/180;
+      return [cx + r*Math.cos(ang), cy + r*Math.sin(ang)];
+    }
+    // grid rings
+    [0.25,0.5,0.75,1].forEach(function(f){
+      var pts = [];
+      for(var i=0;i<n;i++){ var p = pt(i, R*f); pts.push(p[0]+','+p[1]); }
+      var poly = document.createElementNS(ns,'polygon');
+      poly.setAttribute('points', pts.join(' '));
+      poly.setAttribute('fill','none');
+      poly.setAttribute('stroke','#232834');
+      poly.setAttribute('stroke-width','1');
+      svg.appendChild(poly);
+    });
+    // axes
+    for(var i=0;i<n;i++){
+      var p = pt(i, R);
+      var line = document.createElementNS(ns,'line');
+      line.setAttribute('x1',cx); line.setAttribute('y1',cy);
+      line.setAttribute('x2',p[0]); line.setAttribute('y2',p[1]);
+      line.setAttribute('stroke','#232834');
+      svg.appendChild(line);
+    }
+    // data polygon
+    var dpts = [];
+    for(var i=0;i<n;i++){ var p = pt(i, R*(radarData[i].value/100)); dpts.push(p[0]+','+p[1]); }
+    var dpoly = document.createElementNS(ns,'polygon');
+    dpoly.setAttribute('points', dpts.join(' '));
+    dpoly.setAttribute('fill','rgba(139,124,255,0.28)');
+    dpoly.setAttribute('stroke','#8b7cff');
+    dpoly.setAttribute('stroke-width','2');
+    svg.appendChild(dpoly);
+    // dots
+    for(var i=0;i<n;i++){
+      var p = pt(i, R*(radarData[i].value/100));
+      var c = document.createElementNS(ns,'circle');
+      c.setAttribute('cx',p[0]); c.setAttribute('cy',p[1]); c.setAttribute('r','3.5');
+      c.setAttribute('fill','#5eead4');
+      svg.appendChild(c);
+    }
+    // legend
+    var legEl = document.getElementById('radar-legend');
+    radarData.forEach(function(d){
+      var row = document.createElement('div');
+      row.className = 'radar-legend-row';
+      var color = d.value >= 75 ? '#ff6363' : d.value >= 50 ? '#f5a623' : '#4ade80';
+      row.innerHTML = '<span class="lab">' + d.label + '</span><span class="v" style="color:' + color + '">' + d.value + '</span>';
+      legEl.appendChild(row);
+    });
+  })();
+
+  // ---------- ASSETS ----------
+  var assetEl = document.getElementById('asset-grid');
+  assets.sort(function(a,b){ return b.value - a.value; });
+  assets.forEach(function(a, idx){
+    var color = a.value >= 80 ? '#ff6363' : a.value >= 60 ? '#f5a623' : '#5eead4';
+    var card = document.createElement('div');
+    card.className = 'asset-card';
+    card.innerHTML =
+      '<div class="rank">' + (idx+1) + '</div>' +
+      '<div class="title">' + a.title + '</div>' +
+      '<div class="desc">' + a.desc + '</div>' +
+      '<div class="meter-bg"><div class="meter-fill" style="width:' + a.value + '%;background:' + color + '"></div></div>' +
+      '<div class="meter-lbl"><span>Value to data holder</span><span>' + a.value + '/100</span></div>';
+    assetEl.appendChild(card);
+  });
+
+  // ---------- SIMULATOR ----------
+  var base = 38;
+  var actions = [
+    {id:'a1', title:'Limit ad personalization', desc:'Across Google and Meta account settings', pts:8},
+    {id:'a2', title:'Review app permissions', desc:'Location, contacts and microphone access per app', pts:6},
+    {id:'a3', title:'Enable 2FA on financial apps', desc:'PayTM and other payment-linked accounts', pts:10},
+    {id:'a4', title:'Limit shopping data sharing', desc:'Flipkart and Myntra personalization settings', pts:5},
+    {id:'a5', title:'Run a periodic privacy checkup', desc:'Google Privacy Checkup, Meta Accounts Center, etc.', pts:6},
+    {id:'a6', title:'Reduce ecosystem concentration', desc:'Diversify away from single-company bundles where practical', pts:5}
+  ];
+  var togglesEl = document.getElementById('sim-toggles');
+  actions.forEach(function(a){
+    var row = document.createElement('label');
+    row.className = 'sim-toggle';
+    row.innerHTML =
+      '<input type="checkbox" data-pts="' + a.pts + '" id="' + a.id + '"/>' +
+      '<div><div class="t-title">' + a.title + '</div><div class="t-desc">' + a.desc + '</div></div>' +
+      '<div class="t-pts">+' + a.pts + ' pts</div>';
+    togglesEl.appendChild(row);
+  });
+
+  function band(score){
+    if(score<=30) return {label:'🔴 Weak', cls:'band-weak'};
+    if(score<=60) return {label:'🟠 Fair', cls:'band-fair'};
+    if(score<=80) return {label:'🟡 Good', cls:'band-good'};
+    return {label:'🟢 Strong', cls:'band-strong'};
+  }
+
+  function updateSim(){
+    var checked = togglesEl.querySelectorAll('input:checked');
+    var add = 0;
+    checked.forEach(function(c){ add += parseInt(c.getAttribute('data-pts'),10); });
+    var score = Math.min(100, base + add);
+    document.getElementById('sim-score').textContent = score;
+    var b = band(score);
+    var bandEl = document.getElementById('sim-band');
+    bandEl.textContent = b.label;
+    bandEl.className = 'band ' + b.cls;
+    document.getElementById('sim-bar').style.width = score + '%';
+    var deltaEl = document.getElementById('sim-delta');
+    deltaEl.textContent = checked.length === 0 ? 'No changes selected yet' : ('+' + add + ' points from ' + checked.length + ' action' + (checked.length>1?'s':'') + ' selected');
+
+    // also reflect on main privacy gauge for a live feel
+    var ring = document.getElementById('priv-ring');
+    var circumference = 339.3;
+    var offset = circumference - (circumference * score/100);
+    ring.setAttribute('stroke-dashoffset', offset);
+    ring.setAttribute('stroke', score>80 ? '#4ade80' : score>60 ? '#e8d44d' : score>30 ? '#f5a623' : '#ff6363');
+    document.getElementById('priv-num').textContent = score;
+    var mainBand = document.getElementById('priv-band');
+    mainBand.textContent = b.label;
+    mainBand.className = 'band ' + b.cls;
+  }
+  togglesEl.addEventListener('change', updateSim);
+  updateSim();
+
+})();
+</script>
