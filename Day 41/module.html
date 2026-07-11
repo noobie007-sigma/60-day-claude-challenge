@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Learning Studio — System Design Fundamentals</title>
+<style>
+:root{
+  --bg:#0B1220;
+  --surface:#121B2E;
+  --surface-2:#182541;
+  --line:#24334F;
+  --text:#E7EEF9;
+  --muted:#8CA0C2;
+  --signal:#00D9A3;
+  --signal-dim:#0A3D33;
+  --amber:#FFB454;
+  --red:#FF6B6B;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --radius: 10px;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; background:var(--bg); color:var(--text); font-family:var(--sans);
+  line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--signal); color:#04140F;}
+
+/* ---------- Background grid (blueprint motif) ---------- */
+.blueprint-bg{
+  position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(36,51,79,.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(36,51,79,.35) 1px, transparent 1px);
+  background-size:40px 40px;
+  -webkit-mask-image: radial-gradient(ellipse at 20% 0%, black 0%, transparent 70%);
+  mask-image: radial-gradient(ellipse at 20% 0%, black 0%, transparent 70%);
+}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 24px; background:rgba(11,18,32,.85); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex; align-items:center; gap:10px; font-family:var(--mono); font-weight:700; letter-spacing:.5px;}
+.brand .dot{width:9px; height:9px; border-radius:50%; background:var(--signal); box-shadow:0 0 12px var(--signal); animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1} 50%{opacity:.35}}
+.topbar-right{display:flex; align-items:center; gap:16px;}
+.progress-pill{
+  font-family:var(--mono); font-size:12px; color:var(--muted);
+  border:1px solid var(--line); padding:6px 12px; border-radius:20px;
+  display:flex; align-items:center; gap:8px;
+}
+.progress-pill .bar{width:80px; height:5px; background:var(--surface-2); border-radius:3px; overflow:hidden;}
+.progress-pill .fill{height:100%; background:var(--signal); width:0%; transition:width .5s ease;}
+.mode-toggle{
+  background:var(--surface-2); border:1px solid var(--line); color:var(--text);
+  padding:7px 12px; border-radius:20px; font-size:12px; cursor:pointer; font-family:var(--mono);
+}
+body.light{ --bg:#F3F5FA; --surface:#FFFFFF; --surface-2:#EDF1F9; --line:#D8E0EE; --text:#101827; --muted:#5A6B85; --signal-dim:#D6F5EC;}
+
+/* ---------- Layout ---------- */
+.shell{display:grid; grid-template-columns:250px 1fr; max-width:1400px; margin:0 auto;}
+.sidenav{
+  position:sticky; top:57px; align-self:start; height:calc(100vh - 57px);
+  overflow-y:auto; padding:24px 14px; border-right:1px solid var(--line);
+}
+.sidenav h4{font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin:0 0 12px 8px;}
+.nav-item{
+  display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:8px;
+  color:var(--muted); text-decoration:none; font-size:13.5px; cursor:pointer; margin-bottom:2px;
+  transition:background .2s, color .2s; position:relative;
+}
+.nav-item:hover{background:var(--surface-2); color:var(--text);}
+.nav-item.active{background:var(--signal-dim); color:var(--signal);}
+.nav-item .node{width:8px; height:8px; border-radius:50%; border:2px solid var(--muted); flex-shrink:0;}
+.nav-item.done .node{background:var(--signal); border-color:var(--signal);}
+.nav-item.active .node{background:var(--signal); border-color:var(--signal); box-shadow:0 0 8px var(--signal);}
+.nav-item.locked{opacity:.4; cursor:not-allowed;}
+.nav-line{width:1px; background:var(--line); height:14px; margin-left:13px;}
+
+main{padding:0 32px 100px; min-width:0;}
+.section{max-width:880px; margin:0 auto; padding-top:56px; scroll-margin-top:70px;}
+.section:first-child{padding-top:36px;}
+
+/* ---------- Hero ---------- */
+.hero{
+  padding:56px 40px; border:1px solid var(--line); border-radius:16px;
+  background:linear-gradient(160deg, var(--surface) 0%, var(--surface-2) 100%);
+  position:relative; overflow:hidden; margin-bottom:8px;
+}
+.hero .eyebrow{font-family:var(--mono); color:var(--signal); font-size:12px; letter-spacing:2px; text-transform:uppercase;}
+.hero h1{font-size:clamp(28px,4vw,42px); margin:10px 0 14px; font-family:var(--mono); line-height:1.2;}
+.hero p.lead{color:var(--muted); max-width:60ch; font-size:16px;}
+.hero-diagram{margin-top:28px;}
+.meta-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-top:32px;}
+.meta-card{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.meta-card .label{font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase;}
+.meta-card .value{font-size:18px; font-weight:700; margin-top:4px;}
+.reward-strip{
+  margin-top:24px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+  font-family:var(--mono); font-size:12px; color:var(--muted);
+}
+.badge{
+  border:1px dashed var(--line); padding:6px 12px; border-radius:20px; display:flex; align-items:center; gap:6px;
+}
+.badge.earned{border-color:var(--signal); color:var(--signal); border-style:solid; background:var(--signal-dim);}
+
+.cta-row{margin-top:32px; display:flex; gap:12px;}
+.btn{
+  font-family:var(--sans); font-weight:600; padding:12px 22px; border-radius:8px; border:1px solid var(--line);
+  cursor:pointer; font-size:14px; transition:all .2s;
+}
+.btn-primary{background:var(--signal); color:#04140F; border-color:var(--signal);}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-ghost{background:transparent; color:var(--text);}
+.btn-ghost:hover{background:var(--surface-2);}
+
+/* ---------- Module ---------- */
+.module-header{display:flex; align-items:baseline; gap:14px; margin-bottom:6px;}
+.module-num{font-family:var(--mono); color:var(--signal); font-size:14px; border:1px solid var(--signal); border-radius:6px; padding:2px 8px;}
+h2.module-title{font-size:26px; margin:0; font-family:var(--mono);}
+.module-sub{color:var(--muted); margin:8px 0 28px; font-size:15px;}
+
+.card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:24px; margin-bottom:20px;}
+.card h3{margin-top:0; font-size:17px; display:flex; align-items:center; gap:8px;}
+.card h3 .tag{font-family:var(--mono); font-size:10px; padding:3px 8px; border-radius:20px; background:var(--surface-2); color:var(--signal); text-transform:uppercase; letter-spacing:.5px;}
+
+.analogy{border-left:3px solid var(--amber); padding:14px 18px; background:rgba(255,180,84,.06); border-radius:0 8px 8px 0; margin:16px 0;}
+.analogy strong{color:var(--amber);}
+.misconception{border-left:3px solid var(--red); padding:14px 18px; background:rgba(255,107,107,.06); border-radius:0 8px 8px 0; margin:16px 0;}
+.misconception strong{color:var(--red);}
+.takeaways{background:var(--signal-dim); border:1px solid var(--signal); border-radius:10px; padding:18px 20px;}
+.takeaways h4{margin:0 0 10px; color:var(--signal); font-family:var(--mono); font-size:13px;}
+.takeaways ul{margin:0; padding-left:20px;}
+.takeaways li{margin-bottom:6px;}
+
+.compare-table{width:100%; border-collapse:collapse; font-size:14px; margin:16px 0;}
+.compare-table th,.compare-table td{border:1px solid var(--line); padding:10px 12px; text-align:left;}
+.compare-table th{background:var(--surface-2); font-family:var(--mono); font-size:12px; text-transform:uppercase; color:var(--muted);}
+
+code, .code-inline{font-family:var(--mono); background:var(--surface-2); padding:2px 6px; border-radius:4px; font-size:13px; color:var(--signal);}
+pre{background:#0A1120; border:1px solid var(--line); border-radius:8px; padding:16px; overflow-x:auto; font-family:var(--mono); font-size:13px; line-height:1.5;}
+pre code{background:none; padding:0; color:var(--text);}
+
+.diagram-box{background:#0A1120; border:1px solid var(--line); border-radius:10px; padding:20px; margin:16px 0; overflow-x:auto;}
+svg text{font-family:var(--mono);}
+
+.exercise-box{border:1px solid var(--line); border-radius:10px; padding:20px; margin:16px 0; background:var(--surface-2);}
+.exercise-box h4{margin-top:0; font-family:var(--mono); font-size:14px; color:var(--amber);}
+.exercise-box textarea{
+  width:100%; min-height:90px; background:#0A1120; color:var(--text); border:1px solid var(--line);
+  border-radius:8px; padding:12px; font-family:var(--mono); font-size:13px; resize:vertical;
+}
+.reveal-btn{margin-top:10px; font-size:12px; padding:8px 14px;}
+.reveal-content{display:none; margin-top:12px; padding:14px; background:var(--surface); border-radius:8px; border:1px solid var(--line); font-size:14px;}
+.reveal-content.show{display:block;}
+
+/* interactive slider widgets */
+.sim-box{background:#0A1120; border:1px solid var(--line); border-radius:10px; padding:20px; margin:16px 0;}
+.sim-row{display:flex; align-items:center; gap:14px; margin-bottom:12px; flex-wrap:wrap;}
+.sim-row label{font-family:var(--mono); font-size:12px; color:var(--muted); min-width:140px;}
+.sim-row input[type=range]{flex:1; accent-color:var(--signal); min-width:150px;}
+.sim-output{font-family:var(--mono); font-size:13px; color:var(--signal); min-width:70px; text-align:right;}
+.sim-visual{display:flex; align-items:center; gap:8px; margin-top:14px; flex-wrap:wrap;}
+.server-box{width:44px; height:44px; border:2px solid var(--line); border-radius:6px; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:10px; color:var(--muted); transition:all .3s;}
+.server-box.hot{border-color:var(--red); color:var(--red); background:rgba(255,107,107,.1);}
+.server-box.ok{border-color:var(--signal); color:var(--signal); background:var(--signal-dim);}
+
+/* ---------- Quiz ---------- */
+.quiz{border:1px solid var(--signal); border-radius:14px; padding:28px; background:linear-gradient(160deg, var(--surface), var(--signal-dim) 180%); margin:36px 0 20px;}
+.quiz-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;}
+.quiz-header h3{margin:0; font-family:var(--mono); font-size:16px;}
+.q-count{font-family:var(--mono); font-size:12px; color:var(--muted);}
+.q-block{margin-bottom:26px; padding-bottom:22px; border-bottom:1px solid var(--line);}
+.q-block:last-of-type{border-bottom:none;}
+.q-text{font-weight:600; margin-bottom:12px; font-size:15px;}
+.q-opt{
+  display:block; width:100%; text-align:left; padding:12px 16px; margin-bottom:8px;
+  background:var(--surface); border:1px solid var(--line); border-radius:8px; color:var(--text);
+  cursor:pointer; font-size:14px; font-family:var(--sans); transition:all .15s;
+}
+.q-opt:hover{border-color:var(--signal);}
+.q-opt.correct{border-color:var(--signal); background:var(--signal-dim); color:var(--signal);}
+.q-opt.incorrect{border-color:var(--red); background:rgba(255,107,107,.1); color:var(--red);}
+.q-opt.disabled{pointer-events:none;}
+.q-explain{display:none; margin-top:10px; padding:12px 14px; background:var(--surface-2); border-radius:8px; font-size:13.5px; border-left:3px solid var(--signal);}
+.q-explain.show{display:block;}
+.quiz-submit{margin-top:8px;}
+.quiz-result{display:none; text-align:center; padding:24px; margin-top:10px;}
+.quiz-result.show{display:block;}
+.quiz-result .score{font-family:var(--mono); font-size:36px; color:var(--signal);}
+.quiz-result p{color:var(--muted);}
+
+/* ---------- Cheat sheet / resources ---------- */
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+@media (max-width:700px){.grid-2{grid-template-columns:1fr;}}
+.res-list{list-style:none; padding:0; margin:0;}
+.res-list li{padding:10px 0; border-bottom:1px solid var(--line); font-size:14px; display:flex; gap:10px;}
+.res-list li:last-child{border-bottom:none;}
+.res-list .ico{color:var(--signal); font-family:var(--mono); flex-shrink:0;}
+.kw-chip{display:inline-block; padding:6px 12px; margin:4px 6px 4px 0; background:var(--surface-2); border:1px solid var(--line); border-radius:20px; font-family:var(--mono); font-size:12px; color:var(--muted);}
+.prompt-card{background:#0A1120; border:1px solid var(--line); border-radius:8px; padding:14px; font-family:var(--mono); font-size:12.5px; margin-bottom:10px; position:relative;}
+.copy-btn{position:absolute; top:10px; right:10px; font-size:10px; padding:4px 8px; background:var(--surface-2); border:1px solid var(--line); border-radius:5px; cursor:pointer; color:var(--muted);}
+.copy-btn:hover{color:var(--signal); border-color:var(--signal);}
+
+.print-btn-fixed{position:fixed; bottom:24px; right:24px; z-index:60; border-radius:50px; padding:14px 22px; box-shadow:0 8px 24px rgba(0,0,0,.4);}
+
+footer{text-align:center; padding:40px 20px; color:var(--muted); font-size:12px; font-family:var(--mono); border-top:1px solid var(--line);}
+
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr;}
+  .sidenav{position:static; height:auto; border-right:none; border-bottom:1px solid var(--line); display:flex; overflow-x:auto; white-space:nowrap;}
+  .sidenav h4{display:none;}
+  .nav-line{display:none;}
+  .nav-item{display:inline-flex;}
+  main{padding:0 16px 100px;}
+}
+@media print{
+  .sidenav,.topbar,.print-btn-fixed,.cta-row,.q-opt,.quiz-submit{display:none !important;}
+  body{background:#fff; color:#000;}
+}
+</style>
+</head>
+<body>
+<div class="blueprint-bg"></div>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span> INTERACTIVE LEARNING STUDIO</div>
+  <div class="topbar-right">
+    <div class="progress-pill">Progress <div class="bar"><div class="fill" id="topProgressFill"></div></div> <span id="topProgressText">0%</span></div>
+    <button class="mode-toggle" onclick="toggleMode()">☀ / 🌙</button>
+  </div>
+</div>
+
+<div class="shell">
+  <nav class="sidenav" id="sidenav">
+    <h4>Course Map</h4>
+    <div class="nav-item active" data-target="intro" onclick="go('intro')"><span class="node"></span> Introduction</div>
+    <div class="nav-line"></div>
+    <div class="nav-item" data-target="m1" onclick="go('m1')"><span class="node"></span> M1 · Foundations</div>
+    <div class="nav-line"></div>
+    <div class="nav-item locked" data-target="m2" onclick="go('m2')"><span class="node"></span> M2 · Load Balancing &amp; Caching</div>
+    <div class="nav-line"></div>
+    <div class="nav-item locked" data-target="m3" onclick="go('m3')"><span class="node"></span> M3 · Databases at Scale</div>
+    <div class="nav-line"></div>
+    <div class="nav-item locked" data-target="m4" onclick="go('m4')"><span class="node"></span> M4 · Designing the System</div>
+    <div class="nav-line"></div>
+    <div class="nav-item locked" data-target="finale" onclick="go('finale')"><span class="node"></span> Final Challenge</div>
+    <div class="nav-line"></div>
+    <div class="nav-item" data-target="resources" onclick="go('resources')"><span class="node"></span> Cheat Sheet &amp; Resources</div>
+  </nav>
+
+  <main>
+
+  <!-- ============ INTRO ============ -->
+  <section class="section" id="intro">
+    <div class="hero">
+      <div class="eyebrow">Backend · System Design · Infrastructure</div>
+      <h1>System Design Fundamentals</h1>
+      <p class="lead">Learn how real systems serve millions of requests without falling over — scalability principles, load balancing, caching, and database scaling, built up from first principles to a complete system you design yourself.</p>
+
+      <svg viewBox="0 0 700 160" class="hero-diagram" width="100%" height="160" id="heroSvg">
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#00D9A3"/></marker>
+        </defs>
+        <text x="40" y="30" fill="#8CA0C2" font-size="11">CLIENTS</text>
+        <circle cx="55" cy="70" r="14" fill="none" stroke="#8CA0C2" stroke-width="1.5"/>
+        <circle cx="55" cy="110" r="14" fill="none" stroke="#8CA0C2" stroke-width="1.5"/>
+        <line x1="69" y1="70" x2="150" y2="80" stroke="#24334F" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="69" y1="110" x2="150" y2="90" stroke="#24334F" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <rect x="150" y="65" width="90" height="34" rx="6" fill="#182541" stroke="#00D9A3" stroke-width="1.5"/>
+        <text x="165" y="86" fill="#00D9A3" font-size="11">LOAD BAL.</text>
+        <line x1="240" y1="82" x2="320" y2="45" stroke="#24334F" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="240" y1="82" x2="320" y2="82" stroke="#24334F" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="240" y1="82" x2="320" y2="119" stroke="#24334F" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <rect x="320" y="28" width="70" height="30" rx="5" fill="#182541" stroke="#8CA0C2"/>
+        <text x="333" y="47" fill="#E7EEF9" font-size="10">SERVER 1</text>
+        <rect x="320" y="67" width="70" height="30" rx="5" fill="#182541" stroke="#8CA0C2"/>
+        <text x="333" y="86" fill="#E7EEF9" font-size="10">SERVER 2</text>
+        <rect x="320" y="106" width="70" height="30" rx="5" fill="#182541" stroke="#8CA0C2"/>
+        <text x="333" y="125" fill="#E7EEF9" font-size="10">SERVER 3</text>
+        <line x1="390" y1="43" x2="470" y2="80" stroke="#24334F" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="390" y1="82" x2="470" y2="80" stroke="#24334F" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <line x1="390" y1="121" x2="470" y2="80" stroke="#24334F" stroke-width="1.5" marker-end="url(#arrow)"/>
+        <rect x="470" y="60" width="60" height="40" rx="5" fill="#0A3D33" stroke="#00D9A3"/>
+        <text x="480" y="84" fill="#00D9A3" font-size="10">CACHE</text>
+        <line x1="530" y1="80" x2="600" y2="80" stroke="#24334F" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arrow)"/>
+        <ellipse cx="635" cy="80" rx="35" ry="22" fill="#182541" stroke="#FFB454"/>
+        <text x="613" y="84" fill="#FFB454" font-size="10">DATABASE</text>
+        <circle r="3" fill="#00D9A3" id="packet1"><animateMotion dur="2.2s" repeatCount="indefinite" path="M55,70 L150,80 L240,82 L320,43 L390,43 L470,80 L530,80 L600,80"/></circle>
+      </svg>
+
+      <div class="meta-grid">
+        <div class="meta-card"><div class="label">Estimated Time</div><div class="value">2.5 – 3 hrs</div></div>
+        <div class="meta-card"><div class="label">Prerequisites</div><div class="value">Basic backend/API knowledge</div></div>
+        <div class="meta-card"><div class="label">Modules</div><div class="value">4 + Final Challenge</div></div>
+        <div class="meta-card"><div class="label">Format</div><div class="value">Theory + Simulations + Quizzes</div></div>
+      </div>
+
+      <div class="card" style="margin-top:28px;">
+        <h3>🎯 Learning Objectives</h3>
+        <ul>
+          <li>Explain scalability, latency, throughput, and the trade-offs between vertical and horizontal scaling.</li>
+          <li>Design a load-balanced architecture and choose the right balancing algorithm for a given traffic pattern.</li>
+          <li>Apply caching strategies (cache-aside, write-through, TTL, eviction) to reduce database load.</li>
+          <li>Compare SQL vs NoSQL, and apply indexing, replication, and sharding to scale data storage.</li>
+          <li>Synthesize all four pillars into a coherent, defensible system design for a real-world product.</li>
+        </ul>
+      </div>
+
+      <div class="reward-strip" id="rewardStrip">
+        <span class="badge" id="badge-m1">◇ Foundations Badge</span>
+        <span class="badge" id="badge-m2">◇ Traffic Controller Badge</span>
+        <span class="badge" id="badge-m3">◇ Data Architect Badge</span>
+        <span class="badge" id="badge-m4">◇ System Designer Badge</span>
+        <span class="badge" id="badge-final">◇ Mastery Certificate</span>
+      </div>
+
+      <div class="cta-row">
+        <button class="btn btn-primary" onclick="go('m1')">Start Module 1 →</button>
+        <button class="btn btn-ghost" onclick="go('resources')">Jump to Cheat Sheet</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MODULE 1 ============ -->
+  <section class="section" id="m1">
+    <div class="module-header"><span class="module-num">01</span><h2 class="module-title">Foundations of Scalability</h2></div>
+    <p class="module-sub">Why systems break under load, and the vocabulary you need before designing anything.</p>
+
+    <div class="card">
+      <h3>What "Scale" Actually Means <span class="tag">Concept</span></h3>
+      <p>A system that works perfectly for 10 users can fall over completely at 10 million. <strong>Scalability</strong> is a system's ability to handle increasing load — more users, more data, more requests per second — without a proportional collapse in performance. It's not about being fast at one moment; it's about staying fast (or degrading gracefully) as demand grows.</p>
+      <p>Two numbers matter more than any others in this field:</p>
+      <ul>
+        <li><strong>Latency</strong> — how long a single request takes (milliseconds per request).</li>
+        <li><strong>Throughput</strong> — how many requests the system handles per unit time (requests/second).</li>
+      </ul>
+      <p>You can often trade one for the other. Batching requests can raise throughput while raising the latency of any individual request. Good system design is choosing the right trade-off for the actual use case, not chasing one metric blindly.</p>
+
+      <div class="analogy"><strong>Analogy — The Restaurant Kitchen.</strong> Latency is how long it takes to cook one plate. Throughput is how many plates the kitchen sends out per hour. A kitchen can be fast for one order (low latency) but collapse when 200 orders arrive at once (low throughput) if it has only one chef and one stove. Scaling means adding chefs, stoves, or a smarter order queue — not just working faster.</div>
+    </div>
+
+    <div class="card">
+      <h3>Vertical vs Horizontal Scaling <span class="tag">Comparison</span></h3>
+      <p><strong>Vertical scaling (scale up)</strong> means making one machine more powerful — more CPU, RAM, faster disks. <strong>Horizontal scaling (scale out)</strong> means adding more machines and distributing load across them.</p>
+      <table class="compare-table">
+        <tr><th>Dimension</th><th>Vertical Scaling</th><th>Horizontal Scaling</th></tr>
+        <tr><td>How it works</td><td>Upgrade a single server's hardware</td><td>Add more servers behind a load balancer</td></tr>
+        <tr><td>Ceiling</td><td>Hard physical/cost limit</td><td>Near-limitless (add more boxes)</td></tr>
+        <tr><td>Complexity</td><td>Low — no architecture change</td><td>Higher — needs load balancing, statelessness</td></tr>
+        <tr><td>Fault tolerance</td><td>Single point of failure</td><td>One node failing doesn't take the system down</td></tr>
+        <tr><td>Cost curve</td><td>Exponential at the high end</td><td>Roughly linear with commodity hardware</td></tr>
+      </table>
+      <div class="diagram-box">
+        <svg viewBox="0 0 640 140" width="100%" height="140">
+          <text x="30" y="20" fill="#8CA0C2" font-size="11">VERTICAL</text>
+          <rect x="30" y="35" width="60" height="60" rx="4" fill="#182541" stroke="#8CA0C2"/>
+          <text x="38" y="70" fill="#E7EEF9" font-size="10">small</text>
+          <text x="120" y="70" fill="#00D9A3" font-size="16">→</text>
+          <rect x="150" y="20" width="90" height="90" rx="4" fill="#182541" stroke="#00D9A3" stroke-width="2"/>
+          <text x="168" y="70" fill="#00D9A3" font-size="11">BIGGER</text>
+
+          <text x="340" y="20" fill="#8CA0C2" font-size="11">HORIZONTAL</text>
+          <rect x="340" y="60" width="40" height="40" rx="4" fill="#182541" stroke="#8CA0C2"/>
+          <text x="440" y="70" fill="#00D9A3" font-size="16">→</text>
+          <rect x="480" y="30" width="34" height="34" rx="4" fill="#182541" stroke="#00D9A3"/>
+          <rect x="480" y="70" width="34" height="34" rx="4" fill="#182541" stroke="#00D9A3"/>
+          <rect x="524" y="30" width="34" height="34" rx="4" fill="#182541" stroke="#00D9A3"/>
+          <rect x="524" y="70" width="34" height="34" rx="4" fill="#182541" stroke="#00D9A3"/>
+          <rect x="568" y="50" width="34" height="34" rx="4" fill="#182541" stroke="#00D9A3"/>
+        </svg>
+      </div>
+
+      <div class="misconception"><strong>Common Misconception.</strong> "Just add more servers" is not automatically horizontal scaling done right. If your app stores session data in local memory on one server, a request landing on a different server won't find that session — you must design for statelessness (e.g. shared session store) before horizontal scaling works correctly.</div>
+    </div>
+
+    <div class="card">
+      <h3>Interactive Simulation — Requests vs Response Time <span class="tag">Try it</span></h3>
+      <p>Drag the slider to simulate incoming traffic on a single server with a fixed capacity of 100 req/sec. Watch what happens to response time as load approaches and exceeds capacity.</p>
+      <div class="sim-box">
+        <div class="sim-row">
+          <label>Incoming load (req/sec)</label>
+          <input type="range" id="loadSlider" min="0" max="200" value="20" oninput="updateSim()">
+          <span class="sim-output" id="loadVal">20 req/s</span>
+        </div>
+        <div class="sim-row">
+          <label>Response time</label>
+          <span class="sim-output" id="latVal" style="font-size:16px;">— ms</span>
+        </div>
+        <div class="sim-visual" id="serverVisual"><div class="server-box ok">SRV</div></div>
+      </div>
+    </div>
+
+    <div class="exercise-box">
+      <h4>✏ Exercise — Diagnose the Bottleneck</h4>
+      <p>An e-commerce API has average latency of 40ms at 50 req/s, but 900ms at 400 req/s, on a single server with 4 CPU cores. What's most likely happening, and what's the fastest fix that doesn't require a full re-architecture? Write your answer, then reveal the model answer.</p>
+      <textarea placeholder="Type your diagnosis here..."></textarea>
+      <button class="btn btn-ghost reveal-btn" onclick="this.nextElementSibling.classList.toggle('show')">Reveal model answer</button>
+      <div class="reveal-content">The server is saturated — requests are queuing faster than they're processed, so tail latency explodes (a classic queueing effect, not a code bug). The fastest fix without re-architecting is <strong>vertical scaling</strong> (bigger instance) or adding 1-2 more identical servers behind a basic load balancer (horizontal scaling) — both buy time before a deeper redesign (caching, query optimization) is needed.</div>
+    </div>
+
+    <div class="takeaways">
+      <h4>KEY TAKEAWAYS</h4>
+      <ul>
+        <li>Scalability is about sustaining performance as load grows, not raw speed at one instant.</li>
+        <li>Latency (time per request) and throughput (requests per time) are different, sometimes competing, metrics.</li>
+        <li>Vertical scaling is simple but capped; horizontal scaling is limitless but requires statelessness and coordination.</li>
+        <li>Response time doesn't degrade linearly — it explodes past a saturation point due to queueing.</li>
+      </ul>
+    </div>
+
+    <div class="quiz" id="quiz1">
+      <div class="quiz-header"><h3>Module 1 Quiz</h3><span class="q-count" id="qc1">0 / 4 answered</span></div>
+      <div id="quizBody1"></div>
+      <div class="quiz-result" id="result1">
+        <div class="score" id="score1"></div>
+        <p id="scoreMsg1"></p>
+        <button class="btn btn-primary" onclick="unlockNext('m2','badge-m1')">Unlock Module 2 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MODULE 2 ============ -->
+  <section class="section" id="m2">
+    <div class="module-header"><span class="module-num">02</span><h2 class="module-title">Load Balancing &amp; Caching</h2></div>
+    <p class="module-sub">Distributing traffic intelligently, and avoiding redundant work with caching.</p>
+
+    <div class="card">
+      <h3>Load Balancing Algorithms <span class="tag">Concept</span></h3>
+      <p>A <strong>load balancer</strong> sits in front of your servers and decides which server handles each incoming request. The algorithm it uses matters:</p>
+      <table class="compare-table">
+        <tr><th>Algorithm</th><th>How it decides</th><th>Best for</th></tr>
+        <tr><td>Round Robin</td><td>Cycles through servers in order</td><td>Uniform servers, uniform request cost</td></tr>
+        <tr><td>Least Connections</td><td>Sends to the server with fewest active connections</td><td>Long-lived or variable-length requests</td></tr>
+        <tr><td>Weighted Round Robin</td><td>Round robin, but stronger servers get more traffic</td><td>Mixed hardware capacity</td></tr>
+        <tr><td>IP Hash</td><td>Same client always → same server</td><td>Session affinity ("sticky sessions")</td></tr>
+      </table>
+      <div class="analogy"><strong>Analogy — Supermarket Checkout Lines.</strong> Round robin is a queue that sends every third customer to the same register regardless of basket size. Least connections is a helpful attendant who always points you to the shortest line. Sticky sessions is being loyal to the cashier who already knows your loyalty card is scanned.</div>
+    </div>
+
+    <div class="card">
+      <h3>Interactive Simulation — Load Balancing Strategies <span class="tag">Try it</span></h3>
+      <p>Click "Send Request" repeatedly and watch how Round Robin vs Least Connections distribute the load differently across 3 servers.</p>
+      <div class="sim-box">
+        <div class="sim-row">
+          <label>Strategy</label>
+          <select id="lbStrategy" style="background:#0A1120;color:#E7EEF9;border:1px solid #24334F;padding:8px;border-radius:6px;font-family:var(--mono);">
+            <option value="rr">Round Robin</option>
+            <option value="lc">Least Connections</option>
+          </select>
+          <button class="btn btn-primary" style="padding:8px 16px;" onclick="sendReq()">Send Request</button>
+          <button class="btn btn-ghost" style="padding:8px 16px;" onclick="resetLB()">Reset</button>
+        </div>
+        <div class="sim-visual" id="lbVisual">
+          <div class="server-box ok" id="lbsrv0">S1: 0</div>
+          <div class="server-box ok" id="lbsrv1">S2: 0</div>
+          <div class="server-box ok" id="lbsrv2">S3: 0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Caching Strategies <span class="tag">Concept</span></h3>
+      <p>A <strong>cache</strong> stores the result of expensive work (a DB query, a computation) in fast memory so future requests skip the expensive path. The two things to get right are <em>where</em> data lives and <em>when</em> it gets invalidated.</p>
+      <ul>
+        <li><strong>Cache-aside (lazy loading):</strong> app checks cache first; on a miss, reads from DB and populates the cache.</li>
+        <li><strong>Write-through:</strong> every write goes to the cache and the DB simultaneously, keeping them in sync.</li>
+        <li><strong>TTL (time-to-live):</strong> cached data expires automatically after N seconds, bounding staleness.</li>
+        <li><strong>Eviction (LRU):</strong> when the cache is full, the Least Recently Used entry is discarded first.</li>
+      </ul>
+      <div class="diagram-box">
+        <svg viewBox="0 0 640 130" width="100%" height="130">
+          <text x="10" y="20" fill="#8CA0C2" font-size="11">CACHE-ASIDE FLOW</text>
+          <rect x="20" y="40" width="70" height="34" rx="5" fill="#182541" stroke="#8CA0C2"/><text x="35" y="61" fill="#E7EEF9" font-size="10">APP</text>
+          <line x1="90" y1="57" x2="180" y2="57" stroke="#24334F" marker-end="url(#arrow)"/>
+          <rect x="180" y="40" width="80" height="34" rx="5" fill="#0A3D33" stroke="#00D9A3"/><text x="195" y="61" fill="#00D9A3" font-size="10">CACHE?</text>
+          <line x1="260" y1="50" x2="340" y2="25" stroke="#00D9A3" marker-end="url(#arrow)"/><text x="270" y="20" fill="#00D9A3" font-size="9">HIT → return</text>
+          <line x1="260" y1="65" x2="340" y2="100" stroke="#FFB454" marker-end="url(#arrow)"/><text x="270" y="118" fill="#FFB454" font-size="9">MISS → query DB</text>
+          <ellipse cx="400" cy="100" rx="45" ry="20" fill="#182541" stroke="#FFB454"/><text x="378" y="104" fill="#FFB454" font-size="10">DATABASE</text>
+          <line x1="400" y1="80" x2="260" y2="55" stroke="#FFB454" stroke-dasharray="3,3" marker-end="url(#arrow)"/><text x="440" y="70" fill="#8CA0C2" font-size="9">populate cache</text>
+        </svg>
+      </div>
+      <div class="misconception"><strong>Common Misconception.</strong> Caching is not "always faster and safe to add anywhere." It introduces staleness risk — if the underlying data changes and the cache isn't invalidated correctly, users can see outdated information. Cache invalidation is famously one of the two hardest problems in computer science for a reason.</div>
+    </div>
+
+    <div class="exercise-box">
+      <h4>✏ Exercise — Pick the Strategy</h4>
+      <p>A news site shows article view counts that update roughly every few minutes; exact real-time precision doesn't matter. Which caching approach fits best, and why?</p>
+      <textarea placeholder="Type your answer..."></textarea>
+      <button class="btn btn-ghost reveal-btn" onclick="this.nextElementSibling.classList.toggle('show')">Reveal model answer</button>
+      <div class="reveal-content">Cache-aside with a short TTL (e.g. 60 seconds) is ideal here. View counts tolerate slight staleness, so you avoid the complexity of write-through synchronization while still cutting nearly all DB reads for a hot article.</div>
+    </div>
+
+    <div class="takeaways">
+      <h4>KEY TAKEAWAYS</h4>
+      <ul>
+        <li>Load balancer algorithm choice should match the traffic pattern (uniform vs variable-length requests).</li>
+        <li>Cache-aside is the most common general-purpose strategy; write-through trades write latency for consistency.</li>
+        <li>TTL and LRU eviction bound how stale or how large a cache can get.</li>
+        <li>Caching adds a consistency risk that must be deliberately managed, not ignored.</li>
+      </ul>
+    </div>
+
+    <div class="quiz" id="quiz2">
+      <div class="quiz-header"><h3>Module 2 Quiz</h3><span class="q-count" id="qc2">0 / 4 answered</span></div>
+      <div id="quizBody2"></div>
+      <div class="quiz-result" id="result2">
+        <div class="score" id="score2"></div>
+        <p id="scoreMsg2"></p>
+        <button class="btn btn-primary" onclick="unlockNext('m3','badge-m2')">Unlock Module 3 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MODULE 3 ============ -->
+  <section class="section" id="m3">
+    <div class="module-header"><span class="module-num">03</span><h2 class="module-title">Databases at Scale</h2></div>
+    <p class="module-sub">Indexing, replication, and sharding — how storage keeps up with everything else.</p>
+
+    <div class="card">
+      <h3>SQL vs NoSQL <span class="tag">Comparison</span></h3>
+      <table class="compare-table">
+        <tr><th></th><th>SQL (Relational)</th><th>NoSQL</th></tr>
+        <tr><td>Schema</td><td>Fixed, strict schema</td><td>Flexible / schema-less</td></tr>
+        <tr><td>Consistency</td><td>Strong (ACID transactions)</td><td>Often eventual consistency</td></tr>
+        <tr><td>Scaling style</td><td>Typically vertical, sharding is harder</td><td>Built for horizontal scaling</td></tr>
+        <tr><td>Best for</td><td>Relational data, financial records</td><td>High-velocity, semi-structured data</td></tr>
+        <tr><td>Examples</td><td>PostgreSQL, MySQL</td><td>MongoDB, DynamoDB, Cassandra</td></tr>
+      </table>
+      <div class="analogy"><strong>Analogy — Filing Cabinets vs Sticky Notes.</strong> SQL is a filing cabinet with strict labeled folders — great for structured, related records, but rigid to reorganize. NoSQL is a wall of sticky notes — fast to add in any shape, easy to scale across many walls, but harder to guarantee everything is perfectly cross-referenced.</div>
+    </div>
+
+    <div class="card">
+      <h3>Indexing <span class="tag">Concept</span></h3>
+      <p>An <strong>index</strong> is a separate, sorted data structure that lets the database find rows without scanning the entire table. Without an index, looking up a user by email means checking every row — a <code>full table scan</code>.</p>
+      <div class="diagram-box">
+        <svg viewBox="0 0 640 130" width="100%" height="130">
+          <text x="10" y="18" fill="#8CA0C2" font-size="11">NO INDEX: full scan</text>
+          <rect x="10" y="30" width="300" height="20" fill="#182541" stroke="#24334F"/>
+          <rect x="10" y="52" width="300" height="20" fill="#182541" stroke="#24334F"/>
+          <rect x="10" y="74" width="300" height="20" fill="#182541" stroke="#24334F"/>
+          <text x="15" y="44" fill="#FF6B6B" font-size="9">check → check → check → check ...</text>
+          <text x="360" y="18" fill="#8CA0C2" font-size="11">WITH INDEX: direct jump</text>
+          <rect x="360" y="30" width="120" height="64" fill="#0A3D33" stroke="#00D9A3"/>
+          <text x="370" y="55" fill="#00D9A3" font-size="10">B-Tree index</text>
+          <line x1="480" y1="60" x2="560" y2="60" stroke="#00D9A3" marker-end="url(#arrow)"/>
+          <text x="565" y="45" fill="#00D9A3" font-size="9">O(log n)</text>
+        </svg>
+      </div>
+      <p>Indexes speed up reads dramatically but slow down writes slightly (every insert must also update the index) and use extra disk space — index the columns you query most, not everything.</p>
+    </div>
+
+    <div class="card">
+      <h3>Replication <span class="tag">Concept</span></h3>
+      <p><strong>Replication</strong> keeps copies of the database on multiple machines. The most common pattern is <strong>primary-replica</strong>: all writes go to one primary, which streams changes to read replicas that serve read traffic — increasing read throughput and adding redundancy.</p>
+      <div class="misconception"><strong>Common Misconception.</strong> Replication is not automatically the same as backup. A replica mirrors changes in near real-time — if bad data or a bug corrupts the primary, that corruption propagates to replicas too. You still need separate point-in-time backups.</div>
+    </div>
+
+    <div class="card">
+      <h3>Sharding <span class="tag">Concept</span></h3>
+      <p><strong>Sharding</strong> splits one huge table across multiple databases (shards), each holding a subset of rows — typically by a <em>shard key</em> like user ID range or a hash of the ID. This lets writes scale horizontally too, unlike simple replication, but joins across shards become expensive or impossible, and choosing a bad shard key can create "hot shards" that get disproportionate traffic.</p>
+      <div class="diagram-box">
+        <svg viewBox="0 0 640 120" width="100%" height="120">
+          <ellipse cx="60" cy="60" rx="45" ry="30" fill="#182541" stroke="#8CA0C2"/><text x="30" y="64" fill="#E7EEF9" font-size="10">ONE TABLE</text>
+          <line x1="105" y1="60" x2="220" y2="30" stroke="#24334F" marker-end="url(#arrow)"/>
+          <line x1="105" y1="60" x2="220" y2="60" stroke="#24334F" marker-end="url(#arrow)"/>
+          <line x1="105" y1="60" x2="220" y2="90" stroke="#24334F" marker-end="url(#arrow)"/>
+          <rect x="220" y="15" width="110" height="30" rx="5" fill="#182541" stroke="#00D9A3"/><text x="232" y="35" fill="#00D9A3" font-size="10">Shard A: id 0-999</text>
+          <rect x="220" y="45" width="110" height="30" rx="5" fill="#182541" stroke="#00D9A3"/><text x="232" y="65" fill="#00D9A3" font-size="10">Shard B: id 1000-1999</text>
+          <rect x="220" y="75" width="110" height="30" rx="5" fill="#182541" stroke="#00D9A3"/><text x="232" y="95" fill="#00D9A3" font-size="10">Shard C: id 2000+</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="exercise-box">
+      <h4>✏ Exercise — Choose a Shard Key</h4>
+      <p>You're sharding a social media "posts" table. Sharding by <code>created_date</code> means almost all writes today hit one shard. Propose a better shard key and explain why.</p>
+      <textarea placeholder="Type your answer..."></textarea>
+      <button class="btn btn-ghost reveal-btn" onclick="this.nextElementSibling.classList.toggle('show')">Reveal model answer</button>
+      <div class="reveal-content">Shard by a hash of <code>user_id</code> (or post ID). This spreads writes evenly across shards regardless of when posts are created, avoiding the "hot shard" problem where all current traffic lands on a single shard.</div>
+    </div>
+
+    <div class="takeaways">
+      <h4>KEY TAKEAWAYS</h4>
+      <ul>
+        <li>SQL favors strong consistency and structure; NoSQL favors flexible schema and horizontal scale.</li>
+        <li>Indexes turn slow full-table scans into fast lookups, at the cost of write overhead and storage.</li>
+        <li>Replication scales reads and adds redundancy; it is not a substitute for backups.</li>
+        <li>Sharding scales writes by splitting data, but a poorly chosen shard key creates hot spots.</li>
+      </ul>
+    </div>
+
+    <div class="quiz" id="quiz3">
+      <div class="quiz-header"><h3>Module 3 Quiz</h3><span class="q-count" id="qc3">0 / 4 answered</span></div>
+      <div id="quizBody3"></div>
+      <div class="quiz-result" id="result3">
+        <div class="score" id="score3"></div>
+        <p id="scoreMsg3"></p>
+        <button class="btn btn-primary" onclick="unlockNext('m4','badge-m3')">Unlock Module 4 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MODULE 4 ============ -->
+  <section class="section" id="m4">
+    <div class="module-header"><span class="module-num">04</span><h2 class="module-title">Designing the Complete System</h2></div>
+    <p class="module-sub">Combining scalability, load balancing, caching, and data scaling into one coherent architecture.</p>
+
+    <div class="card">
+      <h3>The System Design Interview Framework <span class="tag">Practical</span></h3>
+      <p>Whether in an interview or on the job, a repeatable process prevents you from freezing on a blank page:</p>
+      <ol>
+        <li><strong>Clarify requirements</strong> — functional (what must it do) and non-functional (scale, latency, availability targets).</li>
+        <li><strong>Estimate scale</strong> — back-of-envelope math: users, requests/sec, storage growth per day.</li>
+        <li><strong>Sketch the high-level architecture</strong> — clients → load balancer → services → cache → database.</li>
+        <li><strong>Deep-dive the bottleneck</strong> — the single component most likely to fail under the estimated load.</li>
+        <li><strong>Address trade-offs</strong> — consistency vs availability, cost vs redundancy.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h3>Worked Example — Designing a URL Shortener <span class="tag">Example</span></h3>
+      <p>Requirements: shorten a long URL, redirect on visit, handle 100M new URLs/month and far more reads than writes (read-heavy).</p>
+      <div class="diagram-box">
+        <svg viewBox="0 0 700 170" width="100%" height="170">
+          <rect x="10" y="70" width="60" height="30" rx="4" fill="#182541" stroke="#8CA0C2"/><text x="20" y="90" fill="#E7EEF9" font-size="9">CLIENT</text>
+          <line x1="70" y1="85" x2="140" y2="85" stroke="#24334F" marker-end="url(#arrow)"/>
+          <rect x="140" y="70" width="80" height="30" rx="4" fill="#182541" stroke="#00D9A3"/><text x="150" y="90" fill="#00D9A3" font-size="9">LOAD BAL.</text>
+          <line x1="220" y1="85" x2="290" y2="85" stroke="#24334F" marker-end="url(#arrow)"/>
+          <rect x="290" y="30" width="90" height="30" rx="4" fill="#182541" stroke="#8CA0C2"/><text x="298" y="50" fill="#E7EEF9" font-size="9">API servers</text>
+          <rect x="290" y="110" width="90" height="30" rx="4" fill="#182541" stroke="#8CA0C2"/><text x="298" y="130" fill="#E7EEF9" font-size="9">API servers</text>
+          <line x1="220" y1="85" x2="290" y2="45" stroke="#24334F" marker-end="url(#arrow)"/>
+          <line x1="220" y1="85" x2="290" y2="125" stroke="#24334F" marker-end="url(#arrow)"/>
+          <line x1="380" y1="45" x2="450" y2="45" stroke="#00D9A3" marker-end="url(#arrow)"/>
+          <rect x="450" y="30" width="90" height="30" rx="4" fill="#0A3D33" stroke="#00D9A3"/><text x="465" y="50" fill="#00D9A3" font-size="9">Cache (hot)</text>
+          <line x1="380" y1="125" x2="450" y2="125" stroke="#FFB454" marker-end="url(#arrow)"/>
+          <ellipse cx="510" cy="125" rx="60" ry="22" fill="#182541" stroke="#FFB454"/><text x="475" y="129" fill="#FFB454" font-size="9">DB: sharded by short-code hash</text>
+          <line x1="540" y1="45" x2="600" y2="70" stroke="#24334F" stroke-dasharray="3,3"/>
+          <text x="590" y="20" fill="#8CA0C2" font-size="9">reads hit cache first</text>
+        </svg>
+      </div>
+      <p>Reasoning: since reads vastly outnumber writes, a <strong>cache-aside</strong> layer in front of the database absorbs most redirect traffic. The database is <strong>sharded by a hash of the short code</strong> to spread both storage and write load evenly, and <strong>replicated</strong> for durability. A <strong>base62 encoded auto-incrementing ID or hash</strong> generates short codes, and the load balancer uses <strong>round robin</strong> since all API servers are identical and stateless.</p>
+    </div>
+
+    <div class="card">
+      <h3>Availability vs Consistency <span class="tag">Concept</span></h3>
+      <p>The CAP theorem states a distributed system facing a network partition (P) must choose between Consistency (C) and Availability (A) — it cannot fully guarantee both. In practice: <strong>CP systems</strong> (e.g. many SQL clusters) reject requests rather than return stale data; <strong>AP systems</strong> (e.g. many NoSQL stores) keep responding but may briefly return outdated data.</p>
+      <div class="analogy"><strong>Analogy — Two Bank Tellers, No Phone Line.</strong> If two tellers at different branches can't communicate during an outage, they can either both refuse withdrawals until they can confirm the balance together (consistent, but unavailable) or both allow withdrawals and reconcile later (available, but risking a temporary overdraft). CAP forces this exact choice.</div>
+    </div>
+
+    <div class="exercise-box">
+      <h4>✏ Exercise — Full Design Sketch</h4>
+      <p>Sketch (in words) an architecture for a ride-sharing app's "find nearby drivers" feature, which needs low-latency reads, frequent location updates, and can tolerate slightly stale driver positions. Mention your choice of load balancing, caching, and database strategy.</p>
+      <textarea placeholder="Type your design..."></textarea>
+      <button class="btn btn-ghost reveal-btn" onclick="this.nextElementSibling.classList.toggle('show')">Reveal model answer</button>
+      <div class="reveal-content">Driver locations update frequently, so store current position in an in-memory cache (e.g. Redis with geospatial indexing) rather than the primary DB, using a short TTL so stale drivers age out automatically. Use least-connections load balancing since matching requests vary in cost. Persist trip and driver profile data in a replicated SQL database for consistency, but keep the hot "current location" path entirely in the cache layer to meet the low-latency requirement.</div>
+    </div>
+
+    <div class="takeaways">
+      <h4>KEY TAKEAWAYS</h4>
+      <ul>
+        <li>Every design starts with requirements and scale estimation before drawing boxes.</li>
+        <li>Read-heavy systems lean on caching; write-heavy systems lean on sharding.</li>
+        <li>The CAP theorem forces an explicit choice between consistency and availability during a network partition.</li>
+        <li>There is no single "correct" architecture — only one that's justified by the requirements.</li>
+      </ul>
+    </div>
+
+    <div class="quiz" id="quiz4">
+      <div class="quiz-header"><h3>Module 4 Quiz</h3><span class="q-count" id="qc4">0 / 4 answered</span></div>
+      <div id="quizBody4"></div>
+      <div class="quiz-result" id="result4">
+        <div class="score" id="score4"></div>
+        <p id="scoreMsg4"></p>
+        <button class="btn btn-primary" onclick="unlockNext('finale','badge-m4')">Unlock Final Challenge →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FINALE ============ -->
+  <section class="section" id="finale">
+    <div class="module-header"><span class="module-num">★</span><h2 class="module-title">Final Practical Challenge</h2></div>
+    <p class="module-sub">Bring together every module into one design.</p>
+
+    <div class="card">
+      <h3>Challenge — Design "SnapVote": A Live Polling App</h3>
+      <p>SnapVote lets creators post a poll; up to 2 million people can vote on a single popular poll within minutes of it going live, and everyone should see near real-time updated results. Design the full system:</p>
+      <ol>
+        <li>Estimate the read/write ratio and peak requests/second.</li>
+        <li>Choose a load balancing strategy and justify it.</li>
+        <li>Decide what gets cached, and which caching strategy (cache-aside, write-through, TTL) fits vote counts.</li>
+        <li>Decide SQL vs NoSQL for votes, and whether/how you'd shard or replicate.</li>
+        <li>State one explicit consistency vs availability trade-off you're making, and why.</li>
+      </ol>
+      <textarea placeholder="Write your full design here — there's no single right answer, but a strong answer touches all 5 points above." style="min-height:160px;"></textarea>
+      <button class="btn btn-ghost reveal-btn" onclick="this.nextElementSibling.classList.toggle('show')">Reveal a strong sample answer</button>
+      <div class="reveal-content">
+        <strong>Scale:</strong> 2M votes over ~10 minutes ≈ 3,300 writes/sec at peak; reads (poll result views) likely 10-50x that.<br><br>
+        <strong>Load balancing:</strong> Round robin across stateless API servers, since each vote/read request is roughly uniform cost.<br><br>
+        <strong>Caching:</strong> Vote *counts* (not individual votes) are cached with a short TTL (e.g. 1-2 seconds) or updated via write-through into an in-memory counter (e.g. Redis INCR) — this absorbs the huge read volume on results without hammering the database on every view.<br><br>
+        <strong>Database:</strong> A NoSQL store (or a SQL table sharded by poll ID) for raw vote records, since writes are simple appends with no complex joins needed; shard by poll ID so one viral poll's writes are isolated to a subset of shards, then scale by adding more shards for hot polls.<br><br>
+        <strong>Trade-off:</strong> Choose availability over strict consistency for the *displayed* vote count — showing a count that's 1-2 seconds stale is acceptable, but rejecting valid votes during a spike is not.
+      </div>
+      <button class="btn btn-primary" style="margin-top:16px;" onclick="completeCourse()">Mark Challenge Complete 🏆</button>
+    </div>
+  </section>
+
+  <!-- ============ RESOURCES ============ -->
+  <section class="section" id="resources">
+    <div class="module-header"><span class="module-num">◆</span><h2 class="module-title">Cheat Sheet &amp; Continued Learning</h2></div>
+
+    <div class="card">
+      <h3>Quick Reference Cheat Sheet</h3>
+      <div class="grid-2">
+        <div>
+          <p><strong>Scaling</strong></p>
+          <p style="font-size:14px;color:var(--muted);">Vertical = bigger machine, simple, capped.<br>Horizontal = more machines, needs statelessness, near-limitless.</p>
+          <p><strong>Load Balancing</strong></p>
+          <p style="font-size:14px;color:var(--muted);">Round Robin = uniform traffic.<br>Least Connections = variable-length requests.<br>IP Hash = sticky sessions.</p>
+        </div>
+        <div>
+          <p><strong>Caching</strong></p>
+          <p style="font-size:14px;color:var(--muted);">Cache-aside = default choice.<br>Write-through = need cache/DB in sync.<br>TTL/LRU = bound staleness and size.</p>
+          <p><strong>Databases</strong></p>
+          <p style="font-size:14px;color:var(--muted);">Index = fast reads, slower writes.<br>Replication = scale reads + redundancy (not backup!).<br>Sharding = scale writes, watch for hot shards.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Summary Notes</h3>
+      <p>System design is the discipline of matching architecture to real constraints: expected scale, read/write ratio, consistency requirements, and cost. There is rarely one "correct" answer — only designs that are well-justified against the specific requirements at hand. The core levers you now have are: scaling the compute layer (vertical/horizontal), distributing traffic (load balancing), avoiding repeated expensive work (caching), and scaling data storage (indexing, replication, sharding) — all balanced against the CAP theorem's consistency/availability trade-off.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>📚 Books</h3>
+        <ul class="res-list">
+          <li><span class="ico">▸</span> <em>Designing Data-Intensive Applications</em> — Martin Kleppmann</li>
+          <li><span class="ico">▸</span> <em>System Design Interview Vol. 1 &amp; 2</em> — Alex Xu</li>
+          <li><span class="ico">▸</span> <em>Site Reliability Engineering</em> — Google (free online)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>📄 Documentation &amp; Papers</h3>
+        <ul class="res-list">
+          <li><span class="ico">▸</span> AWS Well-Architected Framework (aws.amazon.com)</li>
+          <li><span class="ico">▸</span> Google's "Dynamo: Amazon's Highly Available Key-value Store" paper</li>
+          <li><span class="ico">▸</span> "The Google File System" paper (foundational distributed storage)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>👥 Communities</h3>
+        <ul class="res-list">
+          <li><span class="ico">▸</span> r/ExperiencedDevs and r/systemdesign (Reddit)</li>
+          <li><span class="ico">▸</span> High Scalability blog + newsletter</li>
+          <li><span class="ico">▸</span> ByteByteGo newsletter and Discord</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>🛠 Practice Platforms</h3>
+        <ul class="res-list">
+          <li><span class="ico">▸</span> excalidraw.com (free-form architecture sketching)</li>
+          <li><span class="ico">▸</span> System Design Primer (GitHub repo)</li>
+          <li><span class="ico">▸</span> Mock interview practice via peer system-design communities</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🔍 Search Keywords for Deeper Study</h3>
+      <span class="kw-chip">consistent hashing</span><span class="kw-chip">CDN edge caching</span><span class="kw-chip">message queues (Kafka/RabbitMQ)</span><span class="kw-chip">database connection pooling</span><span class="kw-chip">rate limiting algorithms</span><span class="kw-chip">circuit breaker pattern</span><span class="kw-chip">read/write splitting</span><span class="kw-chip">idempotency keys</span><span class="kw-chip">eventual consistency</span><span class="kw-chip">horizontal pod autoscaling</span>
+    </div>
+
+    <div class="card">
+      <h3>🤖 AI Prompts for Further Learning</h3>
+      <div class="prompt-card"><button class="copy-btn" onclick="copyPrompt(this)">Copy</button>"Walk me through designing a rate limiter for a public API, comparing token bucket vs sliding window algorithms."</div>
+      <div class="prompt-card"><button class="copy-btn" onclick="copyPrompt(this)">Copy</button>"Explain consistent hashing with a worked example of adding a 4th server to a 3-server hash ring."</div>
+      <div class="prompt-card"><button class="copy-btn" onclick="copyPrompt(this)">Copy</button>"Compare Kafka and RabbitMQ for a system that needs to process 50,000 events/sec with replay capability."</div>
+      <div class="prompt-card"><button class="copy-btn" onclick="copyPrompt(this)">Copy</button>"Critique this system design for a chat app [paste your design] and identify the single biggest bottleneck at 1M concurrent users."</div>
+    </div>
+
+    <div class="cta-row" style="margin-top:10px;">
+      <button class="btn btn-primary" onclick="window.print()">🖨 Print / Save Notes as PDF</button>
+    </div>
+  </section>
+
+  <footer>INTERACTIVE LEARNING STUDIO · SYSTEM DESIGN FUNDAMENTALS · Built for mastery, not memorization.</footer>
+  </main>
+</div>
+
+<button class="btn btn-primary print-btn-fixed" onclick="window.print()" title="Print notes">🖨</button>
+
+<script>
+/* ---------------- Theme ---------------- */
+function toggleMode(){ document.body.classList.toggle('light'); }
+
+/* ---------------- Nav & progress ---------------- */
+const order = ['intro','m1','m2','m3','m4','finale','resources'];
+const progressWeights = {intro:0, m1:15, m2:15, m3:15, m4:15, finale:20, resources:0};
+let unlocked = {intro:true, m1:true, m2:false, m3:false, m4:false, finale:false, resources:true};
+let completedBadges = {m1:false,m2:false,m3:false,m4:false,final:false};
+
+function go(id){
+  if(!unlocked[id]){ flashLocked(id); return; }
+  document.getElementById(id).scrollIntoView({behavior:'smooth'});
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const item = document.querySelector('.nav-item[data-target="'+id+'"]');
+  if(item) item.classList.add('active');
+}
+function flashLocked(id){
+  const item = document.querySelector('.nav-item[data-target="'+id+'"]');
+  if(!item) return;
+  item.style.transition='none'; item.style.color='#FF6B6B';
+  setTimeout(()=>{item.style.transition='color .4s'; item.style.color='';},500);
+}
+function unlockNext(id, badgeId){
+  unlocked[id]=true;
+  const item = document.querySelector('.nav-item[data-target="'+id+'"]');
+  if(item) item.classList.remove('locked');
+  const prevKey = badgeId.replace('badge-','');
+  completedBadges[prevKey]=true;
+  const badgeEl = document.getElementById(badgeId);
+  if(badgeEl) badgeEl.classList.add('earned');
+  // mark previous nav item as done
+  const doneMap = {'badge-m1':'m1','badge-m2':'m2','badge-m3':'m3','badge-m4':'m4'};
+  const doneItem = document.querySelector('.nav-item[data-target="'+doneMap[badgeId]+'"]');
+  if(doneItem) doneItem.classList.add('done');
+  updateTopProgress();
+  go(id);
+}
+function completeCourse(){
+  completedBadges.final = true;
+  const b = document.getElementById('badge-final');
+  if(b) b.classList.add('earned');
+  const fItem = document.querySelector('.nav-item[data-target="finale"]');
+  if(fItem) fItem.classList.add('done');
+  updateTopProgress();
+  alert('🏆 Course complete! You\'ve earned the Mastery Certificate. Check the Cheat Sheet section to keep learning.');
+}
+function updateTopProgress(){
+  let pct = 0;
+  if(completedBadges.m1) pct+=20;
+  if(completedBadges.m2) pct+=20;
+  if(completedBadges.m3) pct+=20;
+  if(completedBadges.m4) pct+=20;
+  if(completedBadges.final) pct+=20;
+  document.getElementById('topProgressFill').style.width = pct+'%';
+  document.getElementById('topProgressText').textContent = pct+'%';
+}
+
+/* ---------------- Sim: Load vs Latency (Module 1) ---------------- */
+function updateSim(){
+  const load = parseInt(document.getElementById('loadSlider').value);
+  document.getElementById('loadVal').textContent = load + ' req/s';
+  const capacity = 100;
+  let latency;
+  if(load <= capacity*0.7){ latency = 20 + load*0.3; }
+  else if(load <= capacity){ latency = 40 + Math.pow(load-capacity*0.7,1.8); }
+  else { latency = 200 + Math.pow(load-capacity,2.2); }
+  latency = Math.round(latency);
+  const latEl = document.getElementById('latVal');
+  latEl.textContent = latency + ' ms';
+  latEl.style.color = latency < 100 ? '#00D9A3' : (latency < 400 ? '#FFB454' : '#FF6B6B');
+
+  const vis = document.getElementById('serverVisual');
+  vis.innerHTML='';
+  const n = Math.max(1, Math.ceil(load/60));
+  for(let i=0;i<n;i++){
+    const d = document.createElement('div');
+    d.className = 'server-box ' + (latency>400?'hot':'ok');
+    d.textContent = 'SRV'+(i+1);
+    vis.appendChild(d);
+  }
+}
+updateSim();
+
+/* ---------------- Sim: Load balancing (Module 2) ---------------- */
+let rrIndex = 0;
+let conns = [0,0,0];
+function sendReq(){
+  const strat = document.getElementById('lbStrategy').value;
+  let target;
+  if(strat==='rr'){ target = rrIndex % 3; rrIndex++; }
+  else { target = conns.indexOf(Math.min(...conns)); }
+  conns[target]+=1 + Math.floor(Math.random()*2);
+  for(let i=0;i<3;i++){
+    document.getElementById('lbsrv'+i).textContent = 'S'+(i+1)+': '+conns[i];
+  }
+  const el = document.getElementById('lbsrv'+target);
+  el.style.transform='scale(1.15)';
+  setTimeout(()=>el.style.transform='scale(1)',200);
+}
+function resetLB(){
+  conns=[0,0,0]; rrIndex=0;
+  for(let i=0;i<3;i++) document.getElementById('lbsrv'+i).textContent='S'+(i+1)+': 0';
+}
+
+/* ---------------- Copy prompts ---------------- */
+function copyPrompt(btn){
+  const text = btn.parentElement.textContent.replace('Copy','').trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    const old = btn.textContent; btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent=old,1200);
+  });
+}
+
+/* ---------------- Quiz engine ---------------- */
+const quizData = {
+  1:[
+    {q:"A system's ability to sustain performance as load increases is best described as:", opts:["Throughput","Scalability","Redundancy","Latency"], correct:1, exp:"Scalability specifically refers to sustaining acceptable performance as demand grows, not any single metric like throughput or latency."},
+    {q:"You upgrade a single server from 8 to 32 CPU cores. This is an example of:", opts:["Horizontal scaling","Load balancing","Vertical scaling","Sharding"], correct:2, exp:"Making one machine more powerful is vertical scaling ('scaling up'). Horizontal scaling would mean adding more machines."},
+    {q:"Why does response time spike sharply (not linearly) once a server approaches its capacity limit?", opts:["The CPU physically slows down","Requests start queueing faster than they can be processed", "The network cable overheats","Load balancers reject all requests immediately"], correct:1, exp:"Once arrival rate approaches service rate, queueing theory shows wait times grow non-linearly — a classic queueing/saturation effect."},
+    {q:"What's the main prerequisite for horizontal scaling to work correctly?", opts:["Faster disks","A more powerful single CPU","Statelessness (or shared session storage) across servers","Lower network latency to users"], correct:2, exp:"If servers hold local session state, requests routed to a different server won't find that state — statelessness or shared storage is required first."}
+  ],
+  2:[
+    {q:"Which load balancing algorithm is best suited when requests vary significantly in how long they take to process?", opts:["Round Robin","Least Connections","IP Hash only","Random"], correct:1, exp:"Least Connections routes to whichever server currently has the fewest active connections, adapting well to variable-length requests."},
+    {q:"In the cache-aside pattern, what happens on a cache miss?", opts:["The request fails","The app queries the database and populates the cache","The load balancer retries on another server","The cache entry is deleted"], correct:1, exp:"On a miss, cache-aside falls through to the database, then writes the result back into the cache for future requests."},
+    {q:"What does a TTL (time-to-live) control in caching?", opts:["Which server handles the request","How long a cached entry is considered valid before expiring","How many servers are in the load balancer pool","The size of the database index"], correct:1, exp:"TTL bounds staleness by automatically expiring a cache entry after a set duration."},
+    {q:"Why is caching not risk-free?", opts:["It always makes requests slower","It can serve stale data if invalidation isn't handled correctly","It requires removing the database entirely","It only works with SQL databases"], correct:1, exp:"Caching introduces a consistency risk — if the source data changes and the cache isn't properly invalidated, stale data can be served."}
+  ],
+  3:[
+    {q:"Which is a key strength of SQL databases over typical NoSQL databases?", opts:["Effortless horizontal scaling","Flexible schema-less storage","Strong consistency via ACID transactions","Eventual consistency by default"], correct:2, exp:"SQL databases are known for strong consistency guarantees through ACID transactions, whereas many NoSQL systems favor eventual consistency for scale."},
+    {q:"What is the main trade-off of adding a database index?", opts:["Reads get slower, writes get faster","Reads get faster, but writes slow down slightly and storage increases","No trade-off exists","Indexes only work on NoSQL databases"], correct:1, exp:"Indexes accelerate lookups (avoiding full table scans) but every write must also update the index, adding overhead and storage cost."},
+    {q:"Replication is NOT a substitute for backups because:", opts:["Replicas are always slower to read from","Replication doesn't work with SQL databases","Corrupted or bad data on the primary propagates to replicas too","Replicas cannot serve read traffic"], correct:2, exp:"Since replicas mirror changes near real-time, any corruption or bad write on the primary is copied to replicas as well — you still need point-in-time backups."},
+    {q:"What's the biggest risk of choosing a poor shard key?", opts:["The database becomes read-only","Creating 'hot shards' that receive disproportionate traffic","Indexes stop working entirely","SQL joins become instant"], correct:1, exp:"A poorly chosen shard key (like sharding by creation date) can concentrate most current traffic onto a single shard, defeating the purpose of sharding."}
+  ],
+  4:[
+    {q:"In the system design framework, what should you do before sketching any architecture?", opts:["Pick a database vendor","Clarify functional and non-functional requirements, then estimate scale","Write the API code","Choose a caching library"], correct:1, exp:"Requirements and scale estimation come first — they determine every architectural decision that follows."},
+    {q:"For a read-heavy system like a URL shortener, which technique reduces database load the most directly?", opts:["Sharding by shard key alone","A cache-aside layer in front of the database","Switching to vertical scaling only","Removing the load balancer"], correct:1, exp:"Since reads vastly outnumber writes, caching hot lookups absorbs the majority of traffic before it reaches the database."},
+    {q:"According to the CAP theorem, during a network partition a distributed system must choose between:", opts:["Speed and security","Consistency and availability","Cost and scalability","SQL and NoSQL"], correct:1, exp:"CAP theorem: during a partition, a system can't guarantee both full consistency and full availability — it must favor one."},
+    {q:"An AP (availability-favoring) system during a partition will typically:", opts:["Reject all requests until consistency is restored","Keep responding, potentially with stale data","Shut down completely","Convert to a SQL database automatically"], correct:1, exp:"AP systems prioritize staying available, accepting the risk of temporarily serving stale or inconsistent data until the partition resolves."}
+  ]
+};
+
+function buildQuiz(moduleNum){
+  const container = document.getElementById('quizBody'+moduleNum);
+  const data = quizData[moduleNum];
+  let answered = new Array(data.length).fill(false);
+  let correctCount = 0;
+
+  data.forEach((item, qi)=>{
+    const block = document.createElement('div');
+    block.className='q-block';
+    const qText = document.createElement('div');
+    qText.className='q-text';
+    qText.textContent = (qi+1)+'. '+item.q;
+    block.appendChild(qText);
+
+    item.opts.forEach((opt, oi)=>{
+      const btn = document.createElement('button');
+      btn.className='q-opt';
+      btn.textContent = opt;
+      btn.onclick = ()=>{
+        if(answered[qi]) return;
+        answered[qi]=true;
+        const allOpts = block.querySelectorAll('.q-opt');
+        allOpts.forEach(o=>o.classList.add('disabled'));
+        if(oi===item.correct){
+          btn.classList.add('correct');
+          correctCount++;
+        } else {
+          btn.classList.add('incorrect');
+          allOpts[item.correct].classList.add('correct');
+        }
+        block.querySelector('.q-explain').classList.add('show');
+        document.getElementById('qc'+moduleNum).textContent = answered.filter(Boolean).length+' / '+data.length+' answered';
+        if(answered.every(Boolean)){
+          showQuizResult(moduleNum, correctCount, data.length);
+        }
+      };
+      block.appendChild(btn);
+    });
+
+    const exp = document.createElement('div');
+    exp.className='q-explain';
+    exp.textContent = '💡 '+item.exp;
+    block.appendChild(exp);
+
+    container.appendChild(block);
+  });
+}
+function showQuizResult(moduleNum, correct, total){
+  const resultBox = document.getElementById('result'+moduleNum);
+  document.getElementById('score'+moduleNum).textContent = correct+' / '+total;
+  let msg;
+  if(correct===total) msg = "Perfect score! You've mastered this module.";
+  else if(correct>=total*0.75) msg = "Great work — solid understanding of the material.";
+  else if(correct>=total*0.5) msg = "Good effort — consider reviewing the sections above before continuing.";
+  else msg = "Worth a re-read of this module before moving on.";
+  document.getElementById('scoreMsg'+moduleNum).textContent = msg;
+  resultBox.classList.add('show');
+}
+[1,2,3,4].forEach(buildQuiz);
+
+/* ---------------- Scroll spy ---------------- */
+const sections = order.map(id=>document.getElementById(id));
+window.addEventListener('scroll', ()=>{
+  let current = sections[0].id;
+  sections.forEach(sec=>{
+    if(window.scrollY + 100 >= sec.offsetTop) current = sec.id;
+  });
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    n.classList.toggle('active', n.dataset.target===current);
+  });
+});
+</script>
+</body>
+</html>
