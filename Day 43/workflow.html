@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Workflow Architect — Database Design & Backend for Existing App</title>
+<style>
+:root{
+  --bg:#0B1220;
+  --bg-alt:#0F172A;
+  --card:#141F35;
+  --card-hi:#182842;
+  --line:#243352;
+  --text:#DCE4F2;
+  --text-dim:#9AB0D4;
+  --text-faint:#7188B0;
+  --teal:#2DD4BF;
+  --teal-dim:#1B8F80;
+  --amber:#F5A524;
+  --rose:#F5647A;
+  --mono:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --radius:10px;
+  --shadow:0 10px 30px -12px rgba(0,0,0,.5);
+}
+[data-theme="light"]{
+  --bg:#F3F5FA;
+  --bg-alt:#EAEDF6;
+  --card:#FFFFFF;
+  --card-hi:#F7F9FF;
+  --line:#DCE2F0;
+  --text:#131C2E;
+  --text-dim:#3E4E6E;
+  --text-faint:#5C6E93;
+  --shadow:0 10px 30px -14px rgba(20,40,90,.25);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important;}
+}
+body{
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  transition:background .3s ease,color .3s ease;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--teal-dim); color:#fff;}
+a{color:inherit;}
+button{font-family:inherit; cursor:pointer; color:inherit;}
+
+/* ---------- Accessibility: focus & skip link ---------- */
+:focus{outline:none;}
+:focus-visible{outline:3px solid var(--teal); outline-offset:2px; border-radius:4px;}
+.skip-link{
+  position:absolute; left:12px; top:-60px; z-index:1000;
+  background:var(--teal); color:#04211D; font-weight:700; font-size:13px;
+  padding:10px 16px; border-radius:8px; transition:top .15s ease; text-decoration:none;
+}
+.skip-link:focus{top:12px;}
+.visually-hidden{
+  position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);
+  white-space:nowrap; border:0; padding:0; margin:-1px;
+}
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar{width:10px; height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--line); border-radius:10px;}
+::-webkit-scrollbar-thumb:hover{background:var(--teal-dim);}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  position:sticky; top:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 28px;
+  background:rgba(11,18,32,.85);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+[data-theme="light"] .topbar{background:rgba(243,245,250,.85);}
+.brand{display:flex; align-items:center; gap:10px;}
+.brand-mark{
+  width:30px;height:30px;border-radius:6px;
+  background:linear-gradient(135deg,var(--teal),var(--teal-dim));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono); font-weight:700; font-size:13px; color:#04211D;
+  box-shadow:0 0 0 3px rgba(45,212,191,.15);
+}
+.brand-text{font-family:var(--mono); font-size:14px; letter-spacing:.02em;}
+.brand-text b{color:var(--teal);}
+.brand-sub{font-size:11px; color:var(--text-faint); font-family:var(--mono);}
+.topbar-actions{display:flex; align-items:center; gap:10px;}
+.icon-btn{
+  width:40px;height:40px;border-radius:8px;border:1px solid var(--line);
+  background:var(--card); color:var(--text-dim); display:flex;align-items:center;justify-content:center;
+  font-size:16px; transition:all .15s ease;
+}
+.icon-btn:hover{border-color:var(--teal-dim); color:var(--teal);}
+.sidebar-toggle{display:none;}
+@media (max-width:900px){
+  .sidebar-toggle{
+    display:flex; align-items:center; gap:8px; width:100%; justify-content:space-between;
+    background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin-bottom:14px;
+    font-size:13px; font-weight:600;
+  }
+  .sidebar-inner{display:none;}
+  .sidebar-inner.open{display:block;}
+}
+.btn-print{
+  border:1px solid var(--line); background:var(--card); color:var(--text);
+  padding:8px 14px; border-radius:8px; font-size:13px; display:flex; gap:6px; align-items:center;
+  transition:all .15s ease;
+}
+.btn-print:hover{border-color:var(--teal-dim); color:var(--teal);}
+
+/* ---------- Hero ---------- */
+.hero{
+  padding:56px 28px 40px;
+  max-width:1200px; margin:0 auto;
+  position:relative;
+}
+.hero-eyebrow{
+  font-family:var(--mono); font-size:12px; color:var(--teal); letter-spacing:.08em;
+  display:flex; align-items:center; gap:8px; margin-bottom:18px;
+}
+.hero-eyebrow::before{content:''; width:20px; height:1px; background:var(--teal);}
+.hero h1{
+  font-family:var(--mono); font-weight:700;
+  font-size:clamp(28px,4.2vw,46px);
+  line-height:1.15; letter-spacing:-.01em;
+  max-width:820px;
+}
+.hero h1 .hl{color:var(--teal);}
+.hero p.lead{
+  margin-top:18px; max-width:640px; color:var(--text-dim); font-size:15.5px; line-height:1.65;
+}
+.hero-schema{
+  margin-top:36px; display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:14px; max-width:920px;
+}
+.schema-chip{
+  border:1px solid var(--line); background:var(--card); border-radius:8px; padding:12px 14px;
+  font-family:var(--mono); font-size:12px;
+}
+.schema-chip .k{color:var(--text-faint); display:block; font-size:10px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px;}
+.schema-chip .v{color:var(--teal); font-weight:600;}
+
+/* ---------- Progress bar ---------- */
+.progress-wrap{
+  max-width:1200px; margin:0 auto; padding:0 28px 28px;
+}
+.progress-track{
+  height:8px; background:var(--card); border-radius:99px; overflow:hidden; border:1px solid var(--line);
+}
+.progress-fill{
+  height:100%; width:0%; background:linear-gradient(90deg,var(--teal-dim),var(--teal));
+  transition:width .4s ease; border-radius:99px;
+}
+.progress-label{font-family:var(--mono); font-size:11.5px; color:var(--text-faint); margin-top:8px; display:flex; justify-content:space-between;}
+
+/* ---------- Layout ---------- */
+.layout{
+  max-width:1200px; margin:0 auto; padding:0 28px 80px;
+  display:grid; grid-template-columns:260px 1fr; gap:28px;
+}
+@media (max-width:900px){ .layout{grid-template-columns:1fr;} }
+
+/* ---------- Sidebar / ER nav ---------- */
+.sidebar{position:sticky; top:76px; align-self:start; max-height:calc(100vh - 96px); overflow-y:auto;}
+.sidebar-title{font-family:var(--mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.08em; margin-bottom:12px; padding-left:2px;}
+.stage-rail{position:relative; padding-left:22px;}
+.stage-rail::before{
+  content:''; position:absolute; left:8px; top:10px; bottom:10px; width:2px;
+  background:linear-gradient(var(--line),var(--line) 70%, transparent);
+}
+.stage-node{
+  position:relative; margin-bottom:6px; border-radius:8px; padding:10px 12px 10px 14px;
+  border:1px solid transparent; transition:all .18s ease; display:block;
+  width:100%; text-align:left; background:transparent; font-family:inherit; text-decoration:none;
+}
+.stage-node::before{
+  content:''; position:absolute; left:-19px; top:16px; width:9px; height:9px; border-radius:50%;
+  background:var(--bg); border:2px solid var(--line); transition:all .18s ease;
+}
+.stage-node.active{background:var(--card-hi); border-color:var(--line);}
+.stage-node.active::before{border-color:var(--teal); background:var(--teal); box-shadow:0 0 0 3px rgba(45,212,191,.2);}
+.stage-node.done::before{border-color:var(--teal-dim); background:var(--teal-dim);}
+.stage-node:hover{background:var(--card);}
+.stage-node .snum{font-family:var(--mono); font-size:10px; color:var(--text-faint);}
+.stage-node .sname{font-size:13px; font-weight:600; margin-top:2px;}
+.stage-node .scheck{float:right; font-size:11px; color:var(--teal); opacity:0;}
+.stage-node.done .scheck{opacity:1;}
+.sidebar-tools{margin-top:24px; padding-top:20px; border-top:1px solid var(--line);}
+.tool-btn{
+  width:100%; text-align:left; background:var(--card); border:1px solid var(--line); border-radius:8px;
+  padding:10px 12px; font-size:12.5px; color:var(--text-dim); margin-bottom:8px; display:flex; align-items:center; gap:8px;
+  transition:all .15s ease;
+}
+.tool-btn:hover{border-color:var(--teal-dim); color:var(--text);}
+
+/* ---------- Main content ---------- */
+.stage-panel{display:none; animation:fadein .35s ease;}
+.stage-panel.active{display:block;}
+@keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+.stage-head{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  padding:22px 24px; margin-bottom:20px; position:relative; overflow:hidden;
+}
+.stage-head::after{
+  content:attr(data-pk); position:absolute; right:18px; top:14px; font-family:var(--mono);
+  font-size:44px; font-weight:800; color:var(--line); opacity:.5; user-select:none;
+}
+.stage-head .tag{font-family:var(--mono); font-size:11px; color:var(--teal); text-transform:uppercase; letter-spacing:.08em;}
+.stage-head h2{font-size:24px; margin-top:6px; font-family:var(--mono); font-weight:700;}
+.stage-head .meta{display:flex; gap:18px; margin-top:14px; flex-wrap:wrap;}
+.meta-item{font-size:12px; color:var(--text-dim); display:flex; align-items:center; gap:6px; font-family:var(--mono);}
+.meta-item b{color:var(--text);}
+.mark-done-btn{
+  margin-top:16px; border:1px solid var(--teal-dim); background:transparent; color:var(--teal);
+  padding:8px 16px; border-radius:8px; font-size:12.5px; font-weight:600; transition:all .15s ease;
+}
+.mark-done-btn.checked{background:var(--teal); color:#04211D;}
+.mark-done-btn:hover{background:var(--teal); color:#04211D;}
+
+/* Field-row card = table row styled block, mimics ER attribute rows */
+.field-table{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin-bottom:16px;
+}
+.field-row{
+  display:grid; grid-template-columns:170px 1fr; border-bottom:1px solid var(--line);
+}
+.field-row:last-child{border-bottom:none;}
+.field-row .fname{
+  padding:14px 16px; font-family:var(--mono); font-size:12px; color:var(--teal); background:var(--card-hi);
+  border-right:1px solid var(--line); display:flex; align-items:flex-start; gap:6px; text-transform:uppercase; letter-spacing:.04em;
+}
+.field-row .fval{padding:14px 18px; font-size:13.5px; line-height:1.7; color:var(--text);}
+.field-row .fval ul{padding-left:18px;}
+.field-row .fval li{margin-bottom:6px;}
+@media (max-width:640px){ .field-row{grid-template-columns:1fr;} .field-row .fname{border-right:none; border-bottom:1px solid var(--line);} }
+
+/* Tool comparison cards */
+.tool-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px;}
+.tool-card{
+  background:var(--card-hi); border:1px solid var(--line); border-radius:8px; padding:14px;
+}
+.tool-card .tname{font-weight:700; font-size:13.5px; display:flex; justify-content:space-between; align-items:center;}
+.tool-card .best-badge{font-size:9px; font-family:var(--mono); background:var(--teal); color:#04211D; padding:2px 6px; border-radius:99px; font-weight:700;}
+.tool-card .twhy{font-size:12px; color:var(--text-dim); margin-top:6px; line-height:1.5;}
+
+/* Prompt block */
+.prompt-block{
+  background:#080D18; border:1px solid var(--line); border-radius:8px; padding:14px 16px;
+  font-family:var(--mono); font-size:12.5px; color:#B8E6DE; position:relative; line-height:1.6; white-space:pre-wrap;
+}
+[data-theme="light"] .prompt-block{background:#0E1830; color:#BFF3EA;}
+.copy-btn{
+  position:absolute; top:10px; right:10px; background:var(--card); border:1px solid var(--line);
+  color:var(--text-dim); font-size:11px; padding:4px 9px; border-radius:6px; font-family:var(--sans);
+}
+.copy-btn:hover{color:var(--teal); border-color:var(--teal-dim);}
+
+/* Notes */
+.notes-box{width:100%; min-height:80px; background:var(--card); border:1px solid var(--line); border-radius:8px;
+  padding:12px 14px; color:var(--text); font-size:13px; resize:vertical; font-family:var(--sans);}
+.notes-box:focus{outline:none; border-color:var(--teal-dim);}
+
+/* Decision tree */
+.dtree{display:flex; flex-direction:column; gap:10px; margin-top:10px;}
+.dtree-q{
+  background:var(--card-hi); border:1px solid var(--line); border-radius:8px; padding:12px 14px; cursor:pointer;
+  font-size:13px; font-weight:600; display:flex; justify-content:space-between; align-items:center;
+  width:100%; text-align:left; gap:12px;
+}
+.dtree-q:hover{border-color:var(--teal-dim);}
+.dtree-a{max-height:0; overflow:hidden; transition:max-height .3s ease;}
+.dtree-a-inner{padding:12px 6px 4px 6px; font-size:12.5px; color:var(--text-dim); line-height:1.6;}
+
+/* Nav arrows */
+.stage-nav{display:flex; justify-content:space-between; margin-top:24px; gap:12px;}
+.nav-btn{
+  flex:1; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 16px;
+  font-size:13px; display:flex; flex-direction:column; transition:all .15s ease;
+}
+.nav-btn:hover{border-color:var(--teal-dim);}
+.nav-btn .lbl{font-size:10px; color:var(--text-faint); font-family:var(--mono); text-transform:uppercase;}
+.nav-btn.next{text-align:right; margin-left:auto;}
+.nav-btn:disabled{opacity:.3; pointer-events:none;}
+
+/* Section title within panel */
+.sec-title{font-family:var(--mono); font-size:12px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.08em; margin:24px 0 10px;}
+
+/* Diagram (overview) */
+.diagram-wrap{overflow-x:auto; padding:10px 0 20px;}
+.diagram{display:flex; align-items:center; gap:6px; min-width:max-content; padding:10px 4px;}
+.dbox{
+  background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; min-width:150px;
+  cursor:pointer; transition:all .15s ease; text-align:center;
+}
+.dbox:hover{border-color:var(--teal-dim); transform:translateY(-2px);}
+.dbox .dn{font-family:var(--mono); font-size:10px; color:var(--teal);}
+.dbox .dt{font-size:12.5px; font-weight:700; margin-top:4px;}
+.darrow{color:var(--text-faint); font-size:18px;}
+
+/* Closing sections (summary etc.) */
+.closing{margin-top:60px;}
+.closing-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px;}
+.closing-card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:20px;}
+.closing-card h3{font-family:var(--mono); font-size:14px; color:var(--teal); margin-bottom:12px; display:flex; align-items:center; gap:8px;}
+.closing-card ul{padding-left:18px; font-size:13px; color:var(--text-dim); line-height:1.8;}
+.closing-card a.reslink{color:var(--text); text-decoration:underline; text-decoration-color:var(--line); text-underline-offset:3px;}
+.closing-card a.reslink:hover{color:var(--teal); text-decoration-color:var(--teal);}
+.keyword-pill{display:inline-block; background:var(--card-hi); border:1px solid var(--line); border-radius:99px; padding:5px 12px; font-size:11.5px; font-family:var(--mono); margin:3px 4px 3px 0; color:var(--text-dim);}
+
+.section-heading{
+  font-family:var(--mono); font-size:22px; font-weight:700; margin-bottom:6px;
+}
+.section-sub{color:var(--text-dim); font-size:13.5px; margin-bottom:20px;}
+
+footer{text-align:center; padding:30px; color:var(--text-faint); font-size:11.5px; font-family:var(--mono); border-top:1px solid var(--line);}
+
+@media print{
+  .topbar, .sidebar, .stage-nav, .icon-btn, .btn-print, .skip-link{display:none !important;}
+  .layout{grid-template-columns:1fr; display:block;}
+  .stage-panel{display:block !important; page-break-after:always;}
+  .stage-panel[hidden]{display:block !important;}
+  body{background:#fff; color:#000;}
+}
+</style>
+</head>
+<body data-theme="dark">
+
+<a class="skip-link" href="#main-content">Skip to workflow content</a>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true">DB</div>
+    <div>
+      <div class="brand-text"><b>AI Workflow</b> Architect</div>
+      <div class="brand-sub">Backend → Database Design (Existing App)</div>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn-print" onclick="window.print()" aria-label="Print this workflow guide">⎙ Print Guide</button>
+    <button class="icon-btn" id="themeToggle" aria-pressed="false" aria-label="Switch to light theme">
+      <span aria-hidden="true">◐</span>
+    </button>
+  </div>
+</header>
+
+<div class="hero">
+  <p class="hero-eyebrow">WORKFLOW.SCHEMA · GENERATED FOR YOUR PROJECT</p>
+  <h1>Redesigning the <span class="hl">database & backend</span> of a live application — start to finish.</h1>
+  <p class="lead">A complete, stage-by-stage execution plan for auditing, redesigning, migrating, and hardening the data layer of an existing product without breaking production. Every stage below is mapped like a schema: objectives, tasks, AI tooling, prompts, pitfalls, and outputs — all connected end to end.</p>
+
+  <div class="hero-schema">
+    <div class="schema-chip"><span class="k">Domain</span><span class="v">Software Development</span></div>
+    <div class="schema-chip"><span class="k">Focus</span><span class="v">Backend Development</span></div>
+    <div class="schema-chip"><span class="k">Objective</span><span class="v">DB Redesign · Existing App</span></div>
+    <div class="schema-chip"><span class="k">Stages</span><span class="v">7 Stages</span></div>
+    <div class="schema-chip"><span class="k">Est. Duration</span><span class="v">3–6 Weeks</span></div>
+  </div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="7" aria-valuenow="0" aria-label="Workflow completion progress" id="progressTrack"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-label"><span id="progressText" aria-live="polite">0 / 7 stages complete</span><span>Saved locally in your browser</span></div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <button class="sidebar-toggle" id="sidebarToggle" aria-expanded="false" aria-controls="sidebarInner">
+      <span>Workflow navigation</span><span aria-hidden="true">▾</span>
+    </button>
+    <div class="sidebar-inner" id="sidebarInner">
+      <h2 class="sidebar-title" id="railHeading">Workflow Tables</h2>
+      <nav class="stage-rail" id="stageRail" aria-labelledby="railHeading"></nav>
+
+      <div class="sidebar-tools">
+        <h2 class="sidebar-title" id="quickViewsHeading">Quick Views</h2>
+        <nav aria-labelledby="quickViewsHeading">
+          <button class="tool-btn" onclick="scrollToId('overview-diagram')">◆ Full Pipeline Diagram</button>
+          <button class="tool-btn" onclick="scrollToId('decision-tree')">◆ ORM Decision Tree</button>
+          <button class="tool-btn" onclick="scrollToId('closing')">◆ Summary & AI Stack</button>
+        </nav>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main-content" tabindex="-1">
+
+    <section id="overview-diagram" aria-labelledby="pipelineHeading">
+      <h2 class="sec-title" id="pipelineHeading">End-to-End Pipeline</h2>
+      <p class="visually-hidden">Activate any stage below to jump directly to its details.</p>
+      <div class="diagram-wrap">
+        <div class="diagram" id="diagramRow"></div>
+      </div>
+    </section>
+
+    <div id="stagePanels"></div>
+
+    <section id="decision-tree" class="closing" aria-labelledby="dtreeHeading">
+      <h2 class="section-heading" id="dtreeHeading">🌳 Decision Tree — Picking Your Migration Approach</h2>
+      <p class="section-sub">Select a question to reveal guidance.</p>
+      <div class="dtree" id="decisionTree"></div>
+    </section>
+
+    <section id="closing" class="closing" aria-labelledby="closingHeading">
+      <h2 class="section-heading" id="closingHeading">Workflow Summary & Resources</h2>
+      <p class="section-sub">Everything you need after the stages are done.</p>
+      <div class="closing-grid" id="closingGrid"></div>
+    </section>
+
+  </main>
+</div>
+
+<footer>AI WORKFLOW ARCHITECT · GENERATED WORKFLOW — DATABASE DESIGN & BACKEND FOR EXISTING APP · DATA STORED LOCALLY, NEVER TRANSMITTED</footer>
+
+<script>
+/* ============ DATA ============ */
+const stages = [
+  {
+    id:'audit', num:'01', name:'Audit & Discovery', pk:'PK',
+    tag:'Stage 01 · Foundation', time:'2–4 days',
+    objectives:[
+      'Understand the current schema, data volume, and access patterns of the live application.',
+      'Identify performance bottlenecks, normalization issues, and technical debt.',
+      'Map every service/endpoint that touches the database.'
+    ],
+    tasks:[
+      'Export current schema (DDL) and generate an ER diagram from production.',
+      'Run query performance analysis (slow query logs, EXPLAIN plans).',
+      'Interview backend engineers about known pain points and workarounds.',
+      'Catalog all tables, their row counts, growth rate, and foreign key relationships.',
+      'Document current indexes and identify unused or missing ones.'
+    ],
+    tools:[
+      {name:'Claude (Sonnet/Opus)', best:true, why:'Best for reasoning through schema trade-offs, reading long DDL dumps, and explaining implications of proposed changes in plain language.'},
+      {name:'dbdiagram.io / DrawSQL', best:false, why:'Fast visual ERD generation from existing SQL to see relationships at a glance.'},
+      {name:'pganalyze / pgHero (Postgres)', best:false, why:'Automated slow-query and index-health reporting if on Postgres.'},
+      {name:'DataGrip / TablePlus', best:false, why:'GUI database client for manual inspection and quick query testing.'}
+    ],
+    prompt:`I'm auditing the database of an existing [Node.js/Postgres] application before a redesign.
+Here is my current schema (DDL): [paste schema]
+Here are my 5 slowest queries with EXPLAIN output: [paste]
+
+Please:
+1. Identify normalization issues (violations of 2NF/3NF) and explain the risk of each.
+2. Flag any missing indexes based on query patterns.
+3. List foreign key relationships that appear to be missing or unenforced.
+4. Summarize technical debt in priority order (critical → nice-to-have).`,
+    best_practices:[
+      'Always audit against production-like data volume, not a near-empty dev database.',
+      'Involve at least one engineer who has been on-call — they know the real pain points.',
+      'Snapshot the current schema and query logs before you start; you will need a "before" baseline.'
+    ],
+    mistakes:[
+      'Skipping the audit and jumping straight to "the new schema" based on assumptions.',
+      'Auditing only the schema and ignoring actual query patterns and access frequency.',
+      'Not checking for orphaned data or referential integrity issues that will break migration.'
+    ],
+    outputs:['Annotated ER diagram of current state', 'Prioritized technical debt list', 'Slow query report with EXPLAIN analysis'],
+    tips:'Feed Claude the schema and a handful of representative queries together — the combination surfaces mismatches (e.g. a query joining on a non-indexed column) that reading either alone would miss.'
+  },
+  {
+    id:'requirements', num:'02', name:'Requirements & Constraints', pk:'PK',
+    tag:'Stage 02 · Foundation', time:'1–2 days',
+    objectives:[
+      'Define what the new schema must support: current features plus known near-term roadmap items.',
+      'Establish non-functional constraints: uptime tolerance, acceptable downtime window, compliance needs.'
+    ],
+    tasks:[
+      'List all features on the roadmap for the next 2 quarters that will touch data.',
+      'Define data retention, privacy (GDPR/PII), and compliance requirements.',
+      'Set explicit non-goals — what the redesign will NOT attempt to solve.',
+      'Agree on a maximum acceptable downtime/migration window with stakeholders.'
+    ],
+    tools:[
+      {name:'Claude (Sonnet/Opus)', best:true, why:'Turns a messy requirements conversation or meeting notes into a structured, ranked requirements doc quickly.'},
+      {name:'Notion AI', best:false, why:'Good for collaborative requirement docs that stay linked to your team wiki.'},
+      {name:'Linear / Jira + AI summarize', best:false, why:'Pulls related tickets to auto-surface roadmap items that will affect the schema.'}
+    ],
+    prompt:`I'm defining requirements for a database redesign of an existing e-commerce backend.
+Roadmap features for next 2 quarters: [list]
+Compliance needs: [e.g. GDPR, PCI-DSS]
+Current pain points: [paste from audit stage]
+
+Please generate:
+1. A structured requirements doc with must-have / should-have / won't-have for this redesign.
+2. Non-functional requirements (uptime, latency, downtime tolerance) as a checklist.
+3. Open questions I should confirm with stakeholders before designing.`,
+    best_practices:[
+      'Write "won\'t-have" items explicitly — scope creep is the #1 killer of DB redesigns.',
+      'Get sign-off on the downtime window before designing the migration strategy.'
+    ],
+    mistakes:[
+      'Designing for imagined future scale instead of the actual roadmap.',
+      'Forgetting compliance requirements until after the schema is built.'
+    ],
+    outputs:['Requirements document (must/should/won\'t)', 'Non-functional constraints checklist'],
+    tips:'Ask the AI to explicitly separate "requirements from stakeholders" vs "requirements it inferred" — this keeps assumptions visible and reviewable.'
+  },
+  {
+    id:'schema', num:'03', name:'Schema Redesign', pk:'PK',
+    tag:'Stage 03 · Design', time:'3–5 days',
+    objectives:[
+      'Design the new normalized (or intentionally denormalized) schema.',
+      'Choose data types, constraints, and indexing strategy up front.',
+      'Design for the write/read ratio and access patterns identified in the audit.'
+    ],
+    tasks:[
+      'Draft entity-relationship diagram for the new schema.',
+      'Define primary/foreign keys, unique constraints, and check constraints.',
+      'Decide on normalization level per table (3NF vs denormalized for read-heavy tables).',
+      'Plan indexing strategy aligned to real query patterns.',
+      'Decide on soft-delete vs hard-delete and audit/versioning strategy.'
+    ],
+    tools:[
+      {name:'Claude (Sonnet/Opus)', best:true, why:'Strongest at reasoning about trade-offs between normalization, indexing, and query performance, and explaining the "why" behind each choice.'},
+      {name:'dbdiagram.io', best:false, why:'Quickly turn DBML into a visual ERD to share with the team for review.'},
+      {name:'Prisma Schema / Drizzle Studio', best:false, why:'If using a TypeScript ORM, design schema-as-code directly and preview relations.'},
+      {name:'PopSQL', best:false, why:'Collaborative SQL editor for reviewing generated schema with teammates.'}
+    ],
+    prompt:`Design a normalized PostgreSQL schema for a multi-tenant SaaS billing system with these requirements:
+[paste requirements from stage 2]
+Current pain points to fix: [paste]
+
+Please:
+1. Propose the full DDL (CREATE TABLE statements) with types, constraints, and indexes.
+2. Explain any denormalization decisions and why they're justified for this access pattern.
+3. Flag any tables that will need partitioning or archiving as data grows.
+4. Suggest a naming convention and apply it consistently.`,
+    best_practices:[
+      'Design indexes based on actual query patterns from the audit, not guesses.',
+      'Use UUIDs or ULIDs for public-facing IDs; keep internal sequential IDs where useful for performance.',
+      'Add created_at/updated_at and soft-delete columns as a standard convention from day one.'
+    ],
+    mistakes:[
+      'Over-normalizing tables that are read 1000x more than they\'re written.',
+      'Skipping constraints "to move faster" — this pushes integrity checks into application code and creates bugs.',
+      'Not planning for multi-tenancy or sharding early if the roadmap requires it.'
+    ],
+    outputs:['New ERD', 'Full DDL script', 'Indexing strategy doc'],
+    tips:'Ask the AI to generate two versions — a strict 3NF version and a pragmatic denormalized version — then compare trade-offs side by side before deciding.'
+  },
+  {
+    id:'api', num:'04', name:'API & ORM Layer', pk:'PK',
+    tag:'Stage 04 · Build', time:'4–7 days',
+    objectives:[
+      'Build the backend data-access layer around the new schema.',
+      'Choose and configure the ORM/query builder, connection pooling, and transaction boundaries.'
+    ],
+    tasks:[
+      'Select ORM (Prisma, Drizzle, TypeORM, SQLAlchemy, etc.) based on team stack.',
+      'Generate models/entities from the new schema.',
+      'Define transaction boundaries for multi-table operations.',
+      'Implement connection pooling and query timeout policies.',
+      'Write repository/service layer functions that replace old data-access code.'
+    ],
+    tools:[
+      {name:'Claude Code', best:true, why:'Can read your existing codebase, generate ORM models matching the new schema, and refactor call sites across many files consistently.'},
+      {name:'GitHub Copilot', best:false, why:'Fast inline autocomplete for repetitive repository/service boilerplate once patterns are established.'},
+      {name:'Prisma / Drizzle CLI', best:false, why:'Native schema-to-code generation and type-safe query building.'},
+      {name:'Cursor', best:false, why:'Good for multi-file refactors when replacing old queries with new ORM calls.'}
+    ],
+    prompt:`Here is my new database schema (DDL): [paste]
+Here is an example of an old raw-SQL data access function: [paste old code]
+
+Please:
+1. Generate the equivalent Prisma model for this schema.
+2. Rewrite the old function using Prisma with proper transaction handling.
+3. Point out any N+1 query risks in the rewritten version and fix them.
+4. Suggest a repository-pattern folder structure for this service.`,
+    best_practices:[
+      'Wrap multi-table writes in explicit transactions from day one.',
+      'Centralize all data access behind a repository layer — never let raw queries leak into controllers.',
+      'Add query logging in a staging environment to catch N+1 issues before production.'
+    ],
+    mistakes:[
+      'Letting the ORM auto-generate queries without reviewing the actual SQL it produces.',
+      'Mixing raw SQL and ORM calls inconsistently across the codebase.',
+      'Not setting connection pool limits, leading to exhausted connections under load.'
+    ],
+    outputs:['ORM models/entities', 'Repository/service layer code', 'Transaction handling policy'],
+    tips:'When using Claude Code, ask it to run the ORM\'s query logger against a few key endpoints and paste the raw SQL back for review — catches inefficient generated queries early.'
+  },
+  {
+    id:'migration', num:'05', name:'Migration Strategy', pk:'PK',
+    tag:'Stage 05 · Build', time:'3–6 days',
+    objectives:[
+      'Move data from the old schema to the new one with zero (or minimal) data loss and acceptable downtime.',
+      'Build a rollback plan in case migration fails mid-way.'
+    ],
+    tasks:[
+      'Write migration scripts (schema + data) with idempotency in mind.',
+      'Decide migration pattern: big-bang, dual-write/expand-contract, or blue-green.',
+      'Build data validation scripts to compare row counts/checksums pre and post migration.',
+      'Write and test the rollback procedure.',
+      'Run a full dry-run migration against a production data snapshot.'
+    ],
+    tools:[
+      {name:'Claude (Sonnet/Opus)', best:true, why:'Excellent for designing expand-contract migration sequences and catching edge cases (nullable columns, default values, in-flight transactions) a human might miss.'},
+      {name:'Claude Code', best:false, why:'Can generate and test the actual migration scripts (SQL/ORM migration files) against a scratch database.'},
+      {name:'Flyway / Liquibase', best:false, why:'Version-controlled migration execution with rollback support for larger teams.'},
+      {name:'pgloader', best:false, why:'Specialized tool for bulk data migration into Postgres from other sources.'}
+    ],
+    prompt:`I need an expand-contract migration plan to move from this old schema: [paste]
+to this new schema: [paste]
+Constraints: max 15 minutes downtime, ~40M rows in the orders table, cannot lose any writes during migration.
+
+Please:
+1. Break the migration into expand-contract phases (add new, dual-write, backfill, cut over, remove old).
+2. Write the SQL/migration script for each phase.
+3. Write a validation query to confirm row-count and checksum parity between old and new tables.
+4. Write the rollback steps for each phase.`,
+    best_practices:[
+      'Prefer expand-contract (additive changes first) over big-bang for any table with meaningful production traffic.',
+      'Always dry-run against a full production data snapshot, not a synthetic dataset.',
+      'Automate the validation step — never eyeball row counts manually on large tables.'
+    ],
+    mistakes:[
+      'Migrating schema and application code in the same deploy — always decouple them.',
+      'Not testing the rollback path until it\'s actually needed mid-incident.',
+      'Underestimating migration time for tables with tens of millions of rows.'
+    ],
+    outputs:['Migration scripts (versioned)', 'Validation/checksum scripts', 'Tested rollback procedure'],
+    tips:'Ask the AI specifically to war-game "what happens if the migration fails at phase 3" for every phase — this single prompt surfaces most rollback gaps.'
+  },
+  {
+    id:'testing', num:'06', name:'Testing & Validation', pk:'PK',
+    tag:'Stage 06 · Verify', time:'3–5 days',
+    objectives:[
+      'Prove the new schema and backend behave correctly under realistic load and edge cases.',
+      'Catch data integrity regressions before they reach production.'
+    ],
+    tasks:[
+      'Write integration tests covering every migrated data-access path.',
+      'Load-test critical endpoints against the new schema.',
+      'Run data reconciliation between old and new systems during a shadow/dual-write period.',
+      'Test failure scenarios: partial writes, connection drops, constraint violations.'
+    ],
+    tools:[
+      {name:'Claude Code', best:true, why:'Generates comprehensive integration test suites directly from the ORM models and old test coverage, including edge cases humans often skip.'},
+      {name:'k6 / Artillery', best:false, why:'Load testing tools to simulate production traffic against the new backend.'},
+      {name:'Postman/Newman + AI', best:false, why:'API contract testing to confirm endpoints behave identically pre/post migration.'},
+      {name:'Sentry / Datadog', best:false, why:'Catch runtime errors and slow queries during the shadow period.'}
+    ],
+    prompt:`Here are my new repository functions: [paste code]
+Here is my old test suite for the equivalent functions: [paste]
+
+Please:
+1. Generate an updated integration test suite covering all CRUD paths plus edge cases (nulls, duplicates, constraint violations, concurrent writes).
+2. Suggest 5 load-testing scenarios most likely to expose issues in this new schema.
+3. Write a data reconciliation query to compare aggregate values (counts, sums) between the old and new tables during a shadow run.`,
+    best_practices:[
+      'Run a shadow/dual-write period in production before fully cutting over, if downtime tolerance allows.',
+      'Test concurrency explicitly — race conditions rarely show up in single-threaded manual testing.',
+      'Automate reconciliation checks to run continuously during the transition period.'
+    ],
+    mistakes:[
+      'Testing only the happy path and skipping constraint-violation or rollback scenarios.',
+      'Load testing with unrealistic (too clean) synthetic data.',
+      'Declaring success right after cutover without a monitoring window.'
+    ],
+    outputs:['Integration test suite', 'Load test report', 'Reconciliation report'],
+    tips:'Ask Claude Code to specifically generate tests for the failure modes identified in Stage 05\'s "what if migration fails" analysis — closes the loop between planning and verification.'
+  },
+  {
+    id:'rollout', num:'07', name:'Rollout & Monitoring', pk:'PK',
+    tag:'Stage 07 · Ship', time:'2–4 days',
+    objectives:[
+      'Cut over to the new database and backend safely, with fast detection of any issue.',
+      'Establish ongoing monitoring and documentation for the new schema.'
+    ],
+    tasks:[
+      'Execute the cutover during the agreed maintenance/downtime window.',
+      'Monitor error rates, query latency, and connection pool health in real time post-cutover.',
+      'Decommission the old schema/tables after a safe observation period.',
+      'Write final schema documentation and update the team runbook.'
+    ],
+    tools:[
+      {name:'Claude (Sonnet/Opus)', best:true, why:'Great for drafting the cutover runbook, on-call communication templates, and post-mortem/retro docs.'},
+      {name:'Datadog / Grafana', best:false, why:'Real-time dashboards for query latency, error rate, and connection pool metrics during cutover.'},
+      {name:'PagerDuty', best:false, why:'Alerting for the on-call team during the rollout window.'},
+      {name:'Claude for docs (Notion/Confluence)', best:false, why:'Auto-generate final schema documentation from the DDL for long-term maintainability.'}
+    ],
+    prompt:`I'm about to cut over production traffic to a new database schema for [system name].
+Here is the migration plan: [paste from stage 5]
+Here is the rollback plan: [paste]
+
+Please:
+1. Write a step-by-step cutover runbook with clear go/no-go checkpoints.
+2. Draft an internal status update template for each phase (starting, in-progress, complete, rolled back).
+3. Generate a monitoring checklist of the top 8 metrics to watch in the first 2 hours post-cutover.
+4. Draft a short post-mortem template to fill in after the rollout, regardless of outcome.`,
+    best_practices:[
+      'Define clear go/no-go checkpoints and who has authority to call a rollback.',
+      'Keep the old schema available (read-only) for at least one full business cycle before decommissioning.',
+      'Write the post-mortem even if the rollout succeeded — capture what almost went wrong.'
+    ],
+    mistakes:[
+      'Decommissioning the old database too early, before confirming no dependent job still reads from it.',
+      'Rolling out during peak traffic hours instead of a low-traffic window.',
+      'Skipping documentation once the migration "works" — creates the same audit problem for the next team.'
+    ],
+    outputs:['Cutover runbook', 'Monitoring dashboard', 'Final schema documentation', 'Post-mortem doc'],
+    tips:'Have the AI generate the monitoring checklist before cutover, not during — under incident pressure, a pre-written checklist is far more reliable than improvising.'
+  }
+];
+
+/* ============ RENDER SIDEBAR + DIAGRAM + PANELS ============ */
+const rail = document.getElementById('stageRail');
+const diagramRow = document.getElementById('diagramRow');
+const panelsWrap = document.getElementById('stagePanels');
+const state = JSON.parse(localStorage.getItem('dbWorkflowState') || '{}');
+state.done = state.done || {};
+state.notes = state.notes || {};
+
+function saveState(){ localStorage.setItem('dbWorkflowState', JSON.stringify(state)); }
+
+stages.forEach((s,i)=>{
+  // sidebar node
+  const node = document.createElement('button');
+  node.type = 'button';
+  node.className = 'stage-node' + (i===0?' active':'') + (state.done[s.id]?' done':'');
+  node.dataset.id = s.id;
+  node.setAttribute('aria-current', i===0 ? 'true' : 'false');
+  node.innerHTML = `<span class="scheck" aria-hidden="true">✓</span><div class="snum">TABLE_${s.num}</div><div class="sname">${s.name}${state.done[s.id]?' <span class="visually-hidden">(complete)</span>':''}</div>`;
+  node.addEventListener('click', (e)=>{ setActive(s.id); });
+  rail.appendChild(node);
+
+  // diagram box
+  const dbox = document.createElement('button');
+  dbox.type = 'button';
+  dbox.className='dbox';
+  dbox.setAttribute('aria-label', `Jump to stage ${s.num}: ${s.name}`);
+  dbox.innerHTML = `<div class="dn" aria-hidden="true">${s.num}</div><div class="dt">${s.name}</div>`;
+  dbox.addEventListener('click', ()=>setActive(s.id));
+  diagramRow.appendChild(dbox);
+  if(i < stages.length-1){
+    const arrow = document.createElement('div');
+    arrow.className='darrow'; arrow.setAttribute('aria-hidden','true'); arrow.innerHTML='→';
+    diagramRow.appendChild(arrow);
+  }
+
+  // panel
+  const panel = document.createElement('section');
+  panel.className = 'stage-panel' + (i===0?' active':'');
+  panel.id = 'panel-'+s.id;
+  panel.setAttribute('aria-labelledby', 'heading-'+s.id);
+  panel.setAttribute('tabindex','-1');
+  if(i!==0) panel.setAttribute('hidden','');
+
+  const listify = arr => `<ul>${arr.map(a=>`<li>${a}</li>`).join('')}</ul>`;
+  const toolCards = s.tools.map(t=>`
+    <div class="tool-card">
+      <div class="tname">${t.name}${t.best?'<span class="best-badge">BEST FIT</span>':''}</div>
+      <div class="twhy">${t.why}</div>
+    </div>`).join('');
+
+  panel.innerHTML = `
+    <div class="stage-head" data-pk="${s.num}">
+      <p class="tag">${s.tag}</p>
+      <h2 id="heading-${s.id}">${s.name}</h2>
+      <div class="meta">
+        <div class="meta-item">⏱ <b>${s.time}</b></div>
+        <div class="meta-item">📦 <b>${s.outputs.length}</b> deliverables</div>
+      </div>
+      <button class="mark-done-btn ${state.done[s.id]?'checked':''}" aria-pressed="${!!state.done[s.id]}" onclick="toggleDone('${s.id}', this)">${state.done[s.id]?'✓ Marked Complete':'Mark stage complete'}</button>
+    </div>
+
+    <div class="field-table">
+      <div class="field-row"><h3 class="fname">Objectives</h3><div class="fval">${listify(s.objectives)}</div></div>
+      <div class="field-row"><h3 class="fname">Tasks</h3><div class="fval">${listify(s.tasks)}</div></div>
+      <div class="field-row"><h3 class="fname">Best Practices</h3><div class="fval">${listify(s.best_practices)}</div></div>
+      <div class="field-row"><h3 class="fname">Common Mistakes</h3><div class="fval">${listify(s.mistakes)}</div></div>
+      <div class="field-row"><h3 class="fname">Expected Outputs</h3><div class="fval">${listify(s.outputs)}</div></div>
+      <div class="field-row"><h3 class="fname">Efficiency Tip</h3><div class="fval">${s.tips}</div></div>
+    </div>
+
+    <h3 class="sec-title">Recommended AI Tools</h3>
+    <div class="tool-grid">${toolCards}</div>
+
+    <h3 class="sec-title">Prompt Example</h3>
+    <div class="prompt-block" id="prompt-${s.id}">
+      <button class="copy-btn" onclick="copyPrompt('${s.id}')" aria-label="Copy prompt example for ${s.name}">Copy</button>${s.prompt}
+    </div>
+    <p class="visually-hidden" role="status" aria-live="polite" id="copy-status-${s.id}"></p>
+
+    <h3 class="sec-title"><label for="notes-${s.id}">Notes & Bookmarks</label></h3>
+    <textarea class="notes-box" id="notes-${s.id}" placeholder="Jot down notes for this stage — saved automatically in your browser..." data-id="${s.id}">${state.notes[s.id]||''}</textarea>
+
+    <div class="stage-nav">
+      ${i>0 ? `<button class="nav-btn" onclick="setActive('${stages[i-1].id}')"><span class="lbl">← Previous</span>${stages[i-1].name}</button>` : `<button class="nav-btn" disabled aria-disabled="true"><span class="lbl">← Previous</span>—</button>`}
+      ${i<stages.length-1 ? `<button class="nav-btn next" onclick="setActive('${stages[i+1].id}')"><span class="lbl">Next →</span>${stages[i+1].name}</button>` : `<button class="nav-btn next" disabled aria-disabled="true"><span class="lbl">Next →</span>—</button>`}
+    </div>
+  `;
+  panelsWrap.appendChild(panel);
+});
+
+// notes autosave
+document.querySelectorAll('.notes-box').forEach(box=>{
+  box.addEventListener('input', ()=>{ state.notes[box.dataset.id] = box.value; saveState(); });
+});
+
+function setActive(id){
+  document.querySelectorAll('.stage-panel').forEach(p=>{ p.classList.remove('active'); p.setAttribute('hidden',''); });
+  const panel = document.getElementById('panel-'+id);
+  panel.classList.add('active');
+  panel.removeAttribute('hidden');
+  document.querySelectorAll('.stage-node').forEach(n=>{ n.classList.remove('active'); n.setAttribute('aria-current','false'); });
+  const node = document.querySelector(`.stage-node[data-id="${id}"]`);
+  node.classList.add('active');
+  node.setAttribute('aria-current','true');
+  panel.scrollIntoView({behavior:'smooth', block:'start'});
+  panel.focus({preventScroll:true});
+  // collapse mobile sidebar after selection
+  if(window.innerWidth <= 900){ closeSidebar(); }
+}
+
+function toggleDone(id, btn){
+  state.done[id] = !state.done[id];
+  saveState();
+  btn.classList.toggle('checked');
+  btn.setAttribute('aria-pressed', state.done[id] ? 'true' : 'false');
+  btn.textContent = state.done[id] ? '✓ Marked Complete' : 'Mark stage complete';
+  const node = document.querySelector(`.stage-node[data-id="${id}"]`);
+  node.classList.toggle('done', state.done[id]);
+  updateProgress();
+}
+
+function updateProgress(){
+  const total = stages.length;
+  const done = Object.values(state.done).filter(Boolean).length;
+  document.getElementById('progressFill').style.width = (done/total*100)+'%';
+  document.getElementById('progressText').textContent = `${done} / ${total} stages complete`;
+  document.getElementById('progressTrack').setAttribute('aria-valuenow', done);
+}
+updateProgress();
+
+function copyPrompt(id){
+  const el = document.getElementById('prompt-'+id);
+  const text = el.textContent.replace('Copy','').trim();
+  const status = document.getElementById('copy-status-'+id);
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = el.querySelector('.copy-btn');
+    const old = btn.textContent; btn.textContent='Copied ✓';
+    if(status) status.textContent = 'Prompt copied to clipboard.';
+    setTimeout(()=>{ btn.textContent=old; if(status) status.textContent=''; }, 1500);
+  }).catch(()=>{
+    if(status) status.textContent = 'Could not copy automatically — please select and copy the text manually.';
+  });
+}
+
+function scrollToId(id){ document.getElementById(id).scrollIntoView({behavior:'smooth', block:'start'}); }
+
+/* ============ MOBILE SIDEBAR TOGGLE ============ */
+const sidebarToggleBtn = document.getElementById('sidebarToggle');
+const sidebarInner = document.getElementById('sidebarInner');
+function closeSidebar(){ sidebarInner.classList.remove('open'); sidebarToggleBtn.setAttribute('aria-expanded','false'); }
+function openSidebar(){ sidebarInner.classList.add('open'); sidebarToggleBtn.setAttribute('aria-expanded','true'); }
+sidebarToggleBtn.addEventListener('click', ()=>{
+  const isOpen = sidebarInner.classList.contains('open');
+  isOpen ? closeSidebar() : openSidebar();
+});
+
+/* ============ THEME TOGGLE ============ */
+const themeBtn = document.getElementById('themeToggle');
+function applyTheme(t){
+  document.body.dataset.theme = t;
+  localStorage.setItem('dbWorkflowTheme', t);
+  themeBtn.querySelector('span').textContent = t==='dark' ? '◐' : '◑';
+  themeBtn.setAttribute('aria-pressed', t==='light' ? 'true' : 'false');
+  themeBtn.setAttribute('aria-label', t==='dark' ? 'Switch to light theme' : 'Switch to dark theme');
+}
+applyTheme(localStorage.getItem('dbWorkflowTheme') || 'dark');
+themeBtn.addEventListener('click', ()=> applyTheme(document.body.dataset.theme==='dark' ? 'light' : 'dark'));
+
+/* ============ DECISION TREE ============ */
+const dtreeData = [
+  {q:'Can you tolerate more than 15 minutes of downtime?', a:'If yes, a big-bang migration (schema swap + bulk copy during a maintenance window) is simpler to implement and verify. If no, use an expand-contract pattern: add new schema alongside the old, dual-write, backfill historical data, then cut reads over and finally drop the old columns/tables.'},
+  {q:'Is your team already using an ORM (Prisma, TypeORM, SQLAlchemy, ActiveRecord)?', a:'If yes, let the ORM\'s migration tooling (Prisma Migrate, Alembic, Rails migrations) manage versioned schema changes — don\'t hand-roll raw SQL migrations in parallel. If no, adopt Flyway or Liquibase for version-controlled, auditable migrations before starting the redesign.'},
+  {q:'Does any table exceed ~10 million rows?', a:'If yes, plan for online schema-change tooling (e.g. pt-online-schema-change for MySQL, or Postgres\'s native concurrent index builds) to avoid table locks, and budget extra time for backfill jobs to run in batches. If no, standard migrations should complete quickly with minimal special tooling.'},
+  {q:'Are there external services or reporting jobs that read directly from the database?', a:'If yes, keep the old schema (or a compatibility view) available read-only for at least one full reporting cycle before decommissioning, and notify those teams of the timeline. If no, you can decommission the old schema as soon as validation passes.'}
+];
+const dtreeEl = document.getElementById('decisionTree');
+dtreeData.forEach((d,i)=>{
+  const q = document.createElement('button');
+  q.type = 'button';
+  q.className='dtree-q';
+  q.setAttribute('aria-expanded','false');
+  q.setAttribute('aria-controls','dtree-a-'+i);
+  q.innerHTML = `<span>${d.q}</span><span aria-hidden="true">+</span>`;
+  const a = document.createElement('div');
+  a.className='dtree-a';
+  a.id = 'dtree-a-'+i;
+  a.setAttribute('role','region');
+  a.innerHTML = `<div class="dtree-a-inner">${d.a}</div>`;
+  q.addEventListener('click', ()=>{
+    const open = a.style.maxHeight && a.style.maxHeight !== '0px';
+    a.style.maxHeight = open ? '0px' : a.scrollHeight+'px';
+    q.querySelector('span:last-child').textContent = open ? '+' : '−';
+    q.setAttribute('aria-expanded', open ? 'false' : 'true');
+  });
+  dtreeEl.appendChild(q);
+  dtreeEl.appendChild(a);
+});
+
+/* ============ CLOSING SECTIONS ============ */
+const closingData = [
+  {title:'📋 Workflow Summary', items:[
+    'Audit the current schema and query patterns before touching anything.',
+    'Lock requirements and constraints (including downtime tolerance) with stakeholders.',
+    'Redesign the schema deliberately, comparing normalized vs pragmatic options.',
+    'Build the ORM/API layer against the new schema behind a repository pattern.',
+    'Migrate data with an expand-contract strategy and a tested rollback.',
+    'Validate with integration tests, load tests, and reconciliation checks.',
+    'Roll out with a runbook, live monitoring, and a post-mortem regardless of outcome.'
+  ]},
+  {title:'🧰 Recommended AI Stack', items:[
+    'Claude (Sonnet/Opus) — schema reasoning, migration planning, documentation',
+    'Claude Code — codegen, refactors, test generation, migration scripts',
+    'dbdiagram.io / DrawSQL — visual ERD generation and review',
+    'Prisma / Drizzle — type-safe ORM and schema-as-code',
+    'k6 / Artillery — load testing the new backend',
+    'Datadog / Grafana — cutover and post-launch monitoring'
+  ]},
+  {title:'📚 Learning Resources', items:[
+    '<a class="reslink" href="https://use-the-index-luke.com/" target="_blank">Use The Index, Luke — indexing fundamentals</a>',
+    '<a class="reslink" href="https://www.postgresql.org/docs/current/ddl.html" target="_blank">PostgreSQL official DDL documentation</a>',
+    '<a class="reslink" href="https://www.prisma.io/docs" target="_blank">Prisma documentation</a>',
+    '<a class="reslink" href="https://martinfowler.com/articles/evodb.html" target="_blank">Martin Fowler — Evolutionary Database Design</a>'
+  ]},
+  {title:'👥 Communities', items:[
+    'r/PostgreSQL and r/Database on Reddit',
+    'DBA Stack Exchange',
+    'Prisma Discord / Drizzle Discord',
+    'Local backend engineering meetups & Slack groups'
+  ]},
+  {title:'🔍 Search Keywords', items:[
+    '<span class="keyword-pill">expand-contract migration</span><span class="keyword-pill">zero-downtime schema migration</span><span class="keyword-pill">database normalization vs denormalization</span><span class="keyword-pill">ORM N+1 query</span><span class="keyword-pill">blue-green database deployment</span><span class="keyword-pill">schema versioning strategy</span>'
+  ]},
+  {title:'💬 Additional AI Prompts', items:[
+    '"Review this schema for multi-tenancy — what would break at 10,000 tenants?"',
+    '"Generate a data dictionary from this DDL for new engineer onboarding."',
+    '"Given these two query patterns, which composite index should I add?"',
+    '"Write a Slack message announcing the cutover window to non-technical stakeholders."'
+  ]},
+  {title:'🚀 Future Automation Opportunities', items:[
+    'Automate slow-query detection with a scheduled AI-reviewed report.',
+    'Auto-generate schema documentation on every migration via CI.',
+    'Use AI to draft migration PRs automatically from schema diff detection.',
+    'Build a Claude-powered Slack bot that answers "which table has X field?" for the team.'
+  ]}
+];
+const closingGrid = document.getElementById('closingGrid');
+closingData.forEach(c=>{
+  const card = document.createElement('div');
+  card.className='closing-card';
+  card.innerHTML = `<h3>${c.title}</h3><ul>${c.items.map(i=>`<li>${i}</li>`).join('')}</ul>`;
+  closingGrid.appendChild(card);
+});
+</script>
+</body>
+</html>
