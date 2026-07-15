@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decision Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-main:#0f0f14;
+  --bg-card:#1a1a24;
+  --bg-card-alt:#1e1e2e;
+  --text-primary:#f0f0f5;
+  --text-secondary:#8888a0;
+  --accent-green:#34d399;
+  --accent-red:#f87171;
+  --accent-blue:#60a5fa;
+  --accent-gold:#fbbf24;
+  --accent-purple:#a78bfa;
+  --border-subtle:rgba(255,255,255,0.06);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--bg-main);
+  color:var(--text-primary);
+  font-family:'Inter','Segoe UI',system-ui,sans-serif;
+  padding:32px 16px 60px;
+}
+.wrap{max-width:720px;margin:0 auto;}
+.header{text-align:center;padding:12px 0 24px;}
+.header h1{font-size:28px;font-weight:800;margin:0 0 8px;letter-spacing:0.5px;}
+.header .subtitle{font-size:16px;color:var(--text-secondary);margin:0 0 6px;}
+.header .date{font-size:12px;color:var(--text-secondary);}
+.gradient-line{height:2px;width:100%;margin:20px 0 32px;background:linear-gradient(90deg,var(--accent-blue),var(--accent-purple),var(--accent-gold));border-radius:2px;}
+.card{
+  background:var(--bg-card);
+  border:1px solid var(--border-subtle);
+  border-radius:16px;
+  padding:28px;
+  margin-bottom:28px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.3);
+  transition:transform 0.2s ease;
+  border-left:4px solid transparent;
+}
+.card:hover{transform:translateY(-2px);}
+.section-title{font-size:20px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:0 0 16px;}
+p, li{font-size:15px;line-height:1.7;color:var(--text-primary);}
+.muted{color:var(--text-secondary);font-size:13px;text-transform:uppercase;font-weight:500;letter-spacing:0.5px;}
+
+.s1{border-left-color:var(--accent-blue);}
+.s1 .section-title{color:var(--accent-blue);}
+
+.s2{border-left-color:var(--accent-green);}
+.s2 .section-title{color:var(--accent-green);}
+.option-card{background:var(--bg-card-alt);border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid var(--border-subtle);}
+.option-card:last-child{margin-bottom:0;}
+.option-card h3{margin:0 0 10px;font-size:17px;color:var(--text-primary);}
+.tag{display:inline-block;font-size:12px;color:var(--text-secondary);margin-top:10px;}
+.tag b{color:var(--accent-gold);}
+
+.s3{border-left-color:var(--accent-purple);}
+.s3 .section-title{color:var(--accent-purple);}
+.s3 ul{padding-left:20px;margin:0 0 16px;}
+.bias-tag{display:inline-block;background:rgba(167,139,250,0.15);color:var(--accent-purple);border-radius:6px;padding:3px 10px;font-size:13px;font-weight:600;margin:4px 6px 4px 0;}
+
+.s4{border-left-color:var(--accent-blue);}
+.s4 .section-title{color:var(--accent-blue);}
+.matrix-row{display:flex;align-items:center;margin-bottom:12px;}
+.matrix-label{width:40%;font-size:13px;color:var(--text-secondary);padding-right:10px;}
+.matrix-bar-container{width:60%;height:28px;background:rgba(255,255,255,0.05);border-radius:8px;overflow:hidden;position:relative;}
+.matrix-bar{height:100%;border-radius:8px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;color:#fff;font-weight:700;font-size:13px;animation:grow 0.8s ease-out forwards;transform-origin:left;}
+@keyframes grow{from{width:0%;}}
+.optA{background:linear-gradient(90deg,#60a5fa,#3b82f6);}
+.optB{background:linear-gradient(90deg,#34d399,#10b981);}
+.total-row{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.04);border-radius:8px;padding:14px 16px;margin-top:16px;font-weight:700;font-size:16px;}
+.total-row .win{color:var(--accent-gold);}
+.legend{display:flex;gap:20px;margin-bottom:16px;font-size:13px;}
+.legend span{display:flex;align-items:center;gap:6px;}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+
+.s5{border-left-color:var(--accent-red);}
+.s5 .section-title{color:var(--accent-red);}
+.premortem-block{margin-bottom:20px;}
+.premortem-block:last-child{margin-bottom:0;}
+.premortem-block h4{margin:0 0 8px;color:var(--text-primary);font-size:15px;}
+.premortem-block ul{padding-left:20px;margin:0 0 8px;}
+.warn-line{font-size:14px;color:var(--accent-red);margin:4px 0;}
+.prevent-line{font-size:14px;color:var(--accent-green);margin:4px 0;}
+
+.s6{border-left-color:var(--accent-green);}
+.s6 .section-title{color:var(--accent-green);}
+.day-row{display:flex;padding:8px 0;border-bottom:1px solid var(--border-subtle);font-size:14px;}
+.day-row:last-child{border-bottom:none;}
+.day-label{width:80px;flex-shrink:0;color:var(--accent-green);font-weight:700;}
+
+.s7{border-left-color:var(--accent-gold);background:var(--bg-card-alt);padding:32px;box-shadow:0 0 20px rgba(251,191,36,0.15),0 4px 24px rgba(0,0,0,0.3);}
+.s7 .section-title{color:var(--accent-gold);}
+.verdict-name{font-size:30px;font-weight:800;color:var(--accent-gold);margin:0 0 12px;}
+.hard-truth{font-style:italic;color:var(--text-secondary);margin-top:16px;}
+
+.s8{border-left-color:var(--accent-gold);}
+.s8 .section-title{color:var(--accent-gold);}
+.mini-cards{display:flex;gap:16px;flex-wrap:wrap;}
+.mini-card{flex:1 1 190px;background:var(--bg-card-alt);border-radius:12px;padding:16px;border:1px solid var(--border-subtle);display:flex;flex-direction:column;justify-content:space-between;min-height:180px;}
+.mini-card h4{margin:0 0 10px;font-size:13px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;}
+.mini-score{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;}
+.watermark{font-size:10px;color:var(--text-secondary);text-align:center;margin-top:12px;opacity:0.7;}
+
+.footer{text-align:center;color:var(--text-secondary);font-size:12px;margin-top:40px;}
+
+@media(max-width:600px){
+  .card{padding:16px;}
+  .s7{padding:20px;}
+  .matrix-row{flex-direction:column;align-items:flex-start;}
+  .matrix-label{width:100%;margin-bottom:6px;}
+  .matrix-bar-container{width:100%;}
+  .mini-cards{flex-direction:column;}
+  .section-title{font-size:18px;}
+  p, li{font-size:14px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <h1>DECISION REPORT</h1>
+    <p class="subtitle">Landing a full-time offer before your contract ends — how to structure your daily grind</p>
+    <p class="date">July 15, 2026</p>
+  </div>
+  <div class="gradient-line"></div>
+
+  <!-- SECTION 1 -->
+  <div class="card s1">
+    <div class="section-title">The Real Decision</div>
+    <p>It's not "should I study" — it's how much of your body and mind you're willing to spend to do it. The real trade-off is speed of prep vs. sustainability of effort over 5+ months. It's hard because "go all out" feels like the only way to make up for a weak DSA base and zero System Design knowledge, but you already suspect it could break you before December.</p>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="card s2">
+    <div class="section-title">The Case For Each Option</div>
+
+    <div class="option-card">
+      <h3>Option A — All-Out Grind (sacrifice sleep, squeeze every hour)</h3>
+      <p><b style="color:var(--accent-green)">Strongest case:</b> Maximum raw study hours squeezed out of a brutal schedule; feels like it directly attacks the "not enough time" problem.</p>
+      <p><b style="color:var(--accent-green)">Hidden upside:</b> Short bursts of high intensity can build momentum fast if it doesn't collapse — early wins on easy DSA topics could boost confidence quickly.</p>
+      <p><b style="color:var(--accent-red)">Biggest weakness:</b> Sleep deprivation degrades memory consolidation — the exact thing DSA and System Design require. You could study more hours and retain less.</p>
+      <span class="tag">Best if you value: <b>short-term intensity over long-term retention</b></span>
+    </div>
+
+    <div class="option-card">
+      <h3>Option B — Structured, Sustainable Plan (protect sleep, use commute + fixed blocks)</h3>
+      <p><b style="color:var(--accent-green)">Strongest case:</b> Your commute (4hrs/day) is dead time you can partially reclaim — audio/video DSA content, flashcards, or reading on metro — without touching your sleep.</p>
+      <p><b style="color:var(--accent-green)">Hidden upside:</b> Consistency compounds. A tired brain studying 6 hours poorly loses to a rested brain studying 3 hours well, especially over 5 months.</p>
+      <p><b style="color:var(--accent-red)">Biggest weakness:</b> Feels slower at first — you won't see dramatic daily progress, which can feel demoralizing given the pressure you're under.</p>
+      <span class="tag">Best if you value: <b>durability and actually reaching December intact</b></span>
+    </div>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="card s3">
+    <div class="section-title">Assumption Buster</div>
+    <ul>
+      <li>You're assuming more hours = more preparation. Retention, not hours, is what converts to interview performance.</li>
+      <li>You're assuming health is something you can "pay back" later. Sleep debt and burnout don't reverse on a schedule — they show up as brain fog exactly when you need to perform in interviews.</li>
+      <li>You're assuming your commute time is unusable. It's 4 hours/day you haven't accounted for as study time yet — that alone could be your DSA-practice block.</li>
+    </ul>
+    <p><b style="color:var(--text-primary)">Biases at play:</b></p>
+    <div>
+      <span class="bias-tag">Sunk Cost / Effort Justification</span>
+      <span class="bias-tag">All-or-Nothing Thinking</span>
+    </div>
+    <p style="margin-top:14px;"><b style="color:var(--text-primary)">What you're definitely ignoring:</b> Interview performance requires a sharp, rested mind on the day — not just accumulated knowledge. A burned-out fresher who "knew everything" but blanks in the interview still gets rejected.</p>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="card s4">
+    <div class="section-title">Decision Matrix</div>
+    <div class="legend">
+      <span><span class="dot" style="background:#3b82f6;"></span>Option A: All-Out Grind</span>
+      <span><span class="dot" style="background:#10b981;"></span>Option B: Structured Plan</span>
+    </div>
+
+    <div class="matrix-row"><div class="matrix-label">Life/Career Upside</div><div class="matrix-bar-container"><div class="matrix-bar optA" style="width:70%;animation-delay:0.1s;">7</div></div></div>
+    <div class="matrix-row"><div class="matrix-label">Life/Career Upside</div><div class="matrix-bar-container"><div class="matrix-bar optB" style="width:80%;animation-delay:0.2s;">8</div></div></div>
+
+    <div class="matrix-row"><div class="matrix-label">Financial Safety</div><div class="matrix-bar-container"><div class="matrix-bar optA" style="width:50%;animation-delay:0.3s;">5</div></div></div>
+    <div class="matrix-row"><div class="matrix-label">Financial Safety</div><div class="matrix-bar-container"><div class="matrix-bar optB" style="width:60%;animation-delay:0.4s;">6</div></div></div>
+
+    <div class="matrix-row"><div class="matrix-label">Growth &amp; Learning</div><div class="matrix-bar-container"><div class="matrix-bar optA" style="width:60%;animation-delay:0.5s;">6</div></div></div>
+    <div class="matrix-row"><div class="matrix-label">Growth &amp; Learning</div><div class="matrix-bar-container"><div class="matrix-bar optB" style="width:80%;animation-delay:0.6s;">8</div></div></div>
+
+    <div class="matrix-row"><div class="matrix-label">Stress Level (10=low)</div><div class="matrix-bar-container"><div class="matrix-bar optA" style="width:20%;animation-delay:0.7s;">2</div></div></div>
+    <div class="matrix-row"><div class="matrix-label">Stress Level (10=low)</div><div class="matrix-bar-container"><div class="matrix-bar optB" style="width:60%;animation-delay:0.8s;">6</div></div></div>
+
+    <div class="matrix-row"><div class="matrix-label">Reversibility (10=easy)</div><div class="matrix-bar-container"><div class="matrix-bar optA" style="width:20%;animation-delay:0.9s;">2</div></div></div>
+    <div class="matrix-row"><div class="matrix-label">Reversibility (10=easy)</div><div class="matrix-bar-container"><div class="matrix-bar optB" style="width:70%;animation-delay:1.0s;">7</div></div></div>
+
+    <div class="matrix-row"><div class="matrix-label">Long-term Alignment</div><div class="matrix-bar-container"><div class="matrix-bar optA" style="width:40%;animation-delay:1.1s;">4</div></div></div>
+    <div class="matrix-row"><div class="matrix-label">Long-term Alignment</div><div class="matrix-bar-container"><div class="matrix-bar optB" style="width:80%;animation-delay:1.2s;">8</div></div></div>
+
+    <div class="matrix-row"><div class="matrix-label">Regret Risk (10=low)</div><div class="matrix-bar-container"><div class="matrix-bar optA" style="width:30%;animation-delay:1.3s;">3</div></div></div>
+    <div class="matrix-row"><div class="matrix-label">Regret Risk (10=low)</div><div class="matrix-bar-container"><div class="matrix-bar optB" style="width:70%;animation-delay:1.4s;">7</div></div></div>
+
+    <div class="total-row"><span>Option A Total</span><span>29 / 70</span></div>
+    <div class="total-row"><span class="win">Option B Total — Winner</span><span class="win">46 / 70</span></div>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="card s5">
+    <div class="section-title">Premortem</div>
+    <div class="premortem-block">
+      <h4>Option A — All-Out Grind: it's 12 months later and it failed</h4>
+      <ul>
+        <li>Burnout by month 2-3 caused you to skip study entirely for stretches, netting less total prep than a steady pace would have.</li>
+        <li>Sleep-deprived brain underperformed in actual interviews despite "knowing" the material.</li>
+        <li>Physical health issues (common with chronic sleep loss) forced downtime you didn't plan for.</li>
+      </ul>
+      <p class="warn-line">Early warning sign: You start dozing off at work or forgetting things you studied the night before.</p>
+      <p class="prevent-line">Prevention: Set a hard sleep floor (e.g. 6 hrs minimum) as non-negotiable, no matter how behind you feel.</p>
+    </div>
+    <div class="premortem-block">
+      <h4>Option B — Structured Plan: it's 12 months later and it failed</h4>
+      <ul>
+        <li>The plan felt too slow and you lost urgency, letting weeks slip without real progress.</li>
+        <li>Commute-based study didn't stick because metro conditions (crowds, noise) made focus hard.</li>
+        <li>You under-invested in System Design because it felt less urgent than DSA, then got caught off guard in interviews.</li>
+      </ul>
+      <p class="warn-line">Early warning sign: A week goes by where you can't say what specific topic you covered.</p>
+      <p class="prevent-line">Prevention: Weekly checklist with named topics, reviewed every Sunday — no vague "I studied" allowed.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 6 -->
+  <div class="card s6">
+    <div class="section-title">7-Day Test Plan</div>
+    <div class="day-row"><div class="day-label">Day 1-2</div><div>Research: list DSA topics by frequency, and find one structured System Design resource (course/playlist) to commit to.</div></div>
+    <div class="day-row"><div class="day-label">Day 3-4</div><div>Experiment: try studying DSA on the metro commute using a phone/notes app — measure how much you actually retain.</div></div>
+    <div class="day-row"><div class="day-label">Day 5-6</div><div>Conversation: talk to a senior/mentor in your field about realistic prep timelines for DSA + System Design as a fresher.</div></div>
+    <div class="day-row"><div class="day-label">Day 7</div><div>Decision day: if commute-study retention felt usable, commit to Option B fully; if it felt useless, redesign around weekend-heavy blocks instead of sleep sacrifice.</div></div>
+  </div>
+
+  <!-- SECTION 7 -->
+  <div class="card s7">
+    <div class="section-title">The Verdict</div>
+    <div class="verdict-name">Option B: Structured, Sustainable Plan</div>
+    <p>It wins because your biggest fear — "getting nothing after sacrificing my health" — is a real risk under Option A and largely avoided under Option B. Reclaiming your 4-hour commute as study time gets you real hours without touching sleep, which protects the very thing (retention, interview-day sharpness) that actually gets you hired.</p>
+    <p>What could flip it: if you test the commute-study approach and find you truly retain nothing on the metro — then a revised plan with more weekend intensity (not sleep sacrifice) is the next best move.</p>
+    <p class="hard-truth">The hard truth: you don't have a time problem, you have an allocation problem — and burning your health won't fix an allocation problem.</p>
+  </div>
+
+  <!-- SECTION 8 -->
+  <div class="card s8">
+    <div class="section-title">Shareable Cards</div>
+    <div class="mini-cards">
+      <div class="mini-card">
+        <h4>Matrix Summary</h4>
+        <div class="mini-score"><span>Option A</span><span>29/70</span></div>
+        <div class="mini-score"><span style="color:var(--accent-gold);font-weight:700;">Option B</span><span style="color:var(--accent-gold);font-weight:700;">46/70</span></div>
+        <div class="watermark">Built with Claude AI</div>
+      </div>
+      <div class="mini-card">
+        <h4>Verdict</h4>
+        <p style="font-weight:700;color:var(--accent-gold);margin:0 0 8px;font-size:15px;">Structured Plan wins</p>
+        <p style="font-size:13px;color:var(--text-secondary);margin:0;">Your commute is your unused study hour — protect sleep, don't sell it.</p>
+        <div class="watermark">Built with Claude AI</div>
+      </div>
+      <div class="mini-card">
+        <h4>LinkedIn Hook</h4>
+        <p style="font-size:13px;margin:0 0 8px;">"I almost sacrificed my sleep to land a job. Here's what I did instead."</p>
+        <p style="font-size:12px;color:var(--text-secondary);margin:0 0 8px;">Turned my 4-hour commute into my DSA classroom. No burnout required. Fresher grinding smart, not just hard.</p>
+        <p style="font-size:12px;color:var(--accent-blue);margin:0;">→ Follow for the journey</p>
+        <div class="watermark">Built with Claude AI</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Built with Claude AI | ABTalks 60-Day Challenge</div>
+</div>
+</body>
+</html>
