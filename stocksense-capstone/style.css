@@ -14,40 +14,162 @@ header {
   margin-bottom: 1.5rem;
 }
 
+h1 {
+  color: #21295c;
+  margin-bottom: 0.25rem;
+}
+
 .tagline {
   color: #3a4a5c;
-  margin-top: 0.25rem;
+  margin-top: 0;
 }
 
 .search-bar {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
+  max-width: 600px;
 }
 
 #search-input {
   flex: 1;
-  padding: 0.6rem;
+  padding: 0.6rem 0.8rem;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 6px;
 }
 
+#search-input:focus {
+  outline: 2px solid #065a82;
+  border-color: #065a82;
+}
+
 #search-button {
-  padding: 0.6rem 1.2rem;
+  padding: 0.6rem 1.4rem;
   font-size: 1rem;
   background: #065a82;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+}
+
+#search-button:hover {
+  background: #054864;
 }
 
 #results {
-  white-space: pre-wrap;
-  font-family: monospace;
-  background: white;
+  max-width: 700px;
+}
+
+.idle-message,
+.error-message,
+.loading-message {
+  color: #3a4a5c;
+  font-size: 1rem;
+  padding: 1rem 0;
+}
+
+.error-message {
+  background: #fdeaea;
+  border-left: 4px solid #dc2626;
   padding: 1rem;
-  border-radius: 8px;
-  min-height: 2rem;
+  border-radius: 4px;
+  color: #7a1f1f;
+}
+
+/* --- Snapshot Card --- */
+
+.snapshot-card {
+  background: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1.5rem;
+}
+
+.snapshot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.snapshot-company-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #21295c;
+  margin: 0;
+}
+
+.snapshot-ticker {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 600;
+  background: #eaf2f8;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+.snapshot-price-row {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.snapshot-stat-label {
+  font-size: 0.78rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.15rem;
+}
+
+.snapshot-stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.snapshot-sector {
+  display: inline-block;
+  font-size: 0.85rem;
+  color: #1c7293;
+  background: #eaf2f8;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+}
+
+.snapshot-description {
+  font-size: 0.95rem;
+  color: #3a4a5c;
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+}
+
+.snapshot-updated {
+  font-size: 0.78rem;
+  color: #9aa5b1;
+  font-style: italic;
+}
+
+/* Placeholders for Days 5-6 — intentionally empty and hidden today */
+#ratios-section,
+#red-flags-section {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  body {
+    padding: 1rem;
+  }
+  .snapshot-price-row {
+    gap: 1rem;
+  }
 }

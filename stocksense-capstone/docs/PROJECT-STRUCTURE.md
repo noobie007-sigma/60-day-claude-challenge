@@ -1,60 +1,53 @@
 # PROJECT-STRUCTURE.md — StockSense
 
-**Status:** Finalized Day 2.
+**Status:** Updated Day 3 — folder structure confirmed to match what was actually built; no structural changes were needed from the Day 2 design.
 
-## 1. Full Folder Structure
+## 1. Full Folder Structure (current state)
 
 ```
 stocksense/
-├── index.html                # The single page — all UI markup lives here
-├── style.css                 # All styling (single file — no CSS framework/build step)
-├── script.js                 # All application logic — search, rule engine, rendering
+├── index.html                # ✅ Built Day 3 — search bar, results container
+├── style.css                 # ✅ Built Day 3 — minimal base styles + search bar styling
+├── script.js                 # ✅ Built Day 3 — loadStockDataset(), searchStock(), basic wiring
 │
 ├── data/
-│   └── stocks.json           # Curated static dataset (~15-20 stocks) — see SCHEMA.md
+│   └── stocks.json           # ✅ Built Day 3 — 6 real stock records (TCS, INFY, RELIANCE, HDFCBANK, ITC, ZOMATO)
 │
-├── assets/
-│   └── (icons/images, if any are added — none required for v1.0 core)
+├── assets/                   # Still empty — reserved for icons/images, Day 6/7 if needed
 │
 ├── docs/
-│   ├── PRD.md                # (or .docx, from Day 1)
-│   ├── ARCHITECTURE.md        # This design set, from Day 2
+│   ├── PRD.md (or .docx)
+│   ├── ARCHITECTURE.md
 │   ├── SCHEMA.md
 │   ├── API.md
 │   ├── UI-WIREFRAMES.md
-│   ├── PROJECT-STRUCTURE.md
+│   ├── PROJECT-STRUCTURE.md   # this file
+│   ├── SETUP.md               # ✅ new, Day 3
+│   ├── ENVIRONMENT.md         # ✅ new, Day 3
+│   ├── DAY3-SUMMARY.md        # ✅ new, Day 3
 │   └── Implementation_Blueprint_Day2-10.md
 │
-├── TESTING.md                 # Created Day 8 — test checklist and results log
-├── README.md                  # Project overview, live link, screenshots (finalized Day 10)
+├── TESTING.md                 # Not created yet — scheduled Day 8
+├── README.md
 └── .gitignore
 ```
 
-## 2. What Each Part Is Responsible For
+## 2. What Changed Today (Day 3)
 
-| Path | Responsibility |
-|---|---|
-| `index.html` | The only HTML page. Contains the search bar, and empty containers (`<div id="results">`, etc.) that `script.js` fills in dynamically. No other HTML files are needed since there's only one screen. |
-| `style.css` | All visual styling: layout (flexbox/grid), the card/section design system, color-coded ratio/flag indicators, and responsive rules for mobile widths. One file is enough at this project's scale — splitting into multiple CSS files would add complexity with no real benefit. |
-| `script.js` | All behavior: fetching `data/stocks.json` once, the search function, the ratio rule engine, the red-flag rule engine, the formatting helpers, and all DOM rendering. Organized internally into clearly-commented sections (per API.md's function list) rather than split into multiple JS files — keeps things simple for a static site with no module bundler. |
-| `data/stocks.json` | The entire "database." Structure defined in SCHEMA.md. This is the only file that needs periodic manual updates to refresh stock data. |
-| `assets/` | Reserved for any icons or images if visual polish work (Day 6/7) calls for them. Empty is a perfectly valid state for v1.0. |
-| `docs/` | Every planning and design document produced across the capstone lives here, so the repo itself tells the full story of the project — useful for the demo and for any future AI conversation picking up mid-build. |
-| `TESTING.md` | Created on Day 8 specifically — the bug-bash checklist and log described in the Implementation Blueprint. |
-| `README.md` | The public face of the repo — finalized on Day 10 with the live link, screenshots, and feature list. |
+- `index.html`, `style.css`, `script.js` went from empty skeletons to working foundation code.
+- `data/stocks.json` went from empty to populated with 6 schema-valid records (out of the eventual 15–20 planned — the rest will be added incrementally as needed, most likely alongside Day 4–6 feature work, since more records aren't required to build/test the UI logic).
+- `docs/` gained three new files: `SETUP.md`, `ENVIRONMENT.md`, `DAY3-SUMMARY.md`.
 
-## 3. Where Future Code Will Live
+No folders were added or removed — the Day 2 structure held up exactly as designed, which confirms the architecture was scoped correctly.
 
-- **Day 3 (Setup):** `data/stocks.json` gets populated with the first batch of curated stock records; `script.js` gets its first `fetch()` + console-log-only test.
-- **Day 4 (Snapshot):** New rendering code added to `script.js` under a clearly-commented `// --- Snapshot rendering ---` section; new CSS rules added to `style.css` under `/* Snapshot card */`.
-- **Day 5 (Ratios):** New logic under `// --- Ratio rule engine ---` in `script.js`; new styles under `/* Ratio rows */`.
-- **Day 6 (Red Flags + cohesion pass):** New logic under `// --- Red flag rule engine ---`; cohesion-pass CSS edits touch shared variables/classes across the file, not new files.
-- **Day 7 (Stretch, if reached):** Any Chart.js integration is added as a new `<script>` CDN tag in `index.html` plus a `// --- Price chart (stretch) ---` section in `script.js`. No new files unless the codebase clearly outgrows a single JS file (unlikely at this scope).
-- **Day 8–10:** No new source files expected — only fixes within the existing three core files, plus the `TESTING.md` and finalized `README.md`.
+## 3. Confirmation Against System Design
 
-## 4. Why This Structure Was Chosen
+| Day 2 Design | Day 3 Reality | Match? |
+|---|---|---|
+| Flat, 3-file frontend (no framework) | Exactly this | ✅ |
+| `data/stocks.json` as sole data source | Exactly this, schema followed precisely | ✅ |
+| `docs/` folder for all planning artifacts | Exactly this | ✅ |
+| No backend/server folders | None created | ✅ |
+| No `node_modules`, no build config | None created | ✅ |
 
-- **Matches the "no backend, static site" architecture exactly** — there is no `server/`, `routes/`, or `models/` folder because none of those concepts exist in this project.
-- **Flat and shallow on purpose.** With only 3 core code files, deep nesting (`src/components/...`) would add navigation overhead with zero benefit at this scale, and would work against the 1–2 hr/day time budget.
-- **`docs/` centralizes planning artifacts** so the repository is self-explanatory to anyone (including a future AI assistant in a fresh conversation) without needing this chat history.
-- **Easy to extend later without restructuring.** If a real backend or framework is ever introduced post-capstone (see PRD Future Scope), this flat structure can be migrated into a more complex one at that time — it doesn't need to be over-engineered now for a possibility that's explicitly out of scope today.
+No deviations. Day 4 can proceed directly into feature work without any structural changes.
