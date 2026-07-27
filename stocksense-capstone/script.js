@@ -142,6 +142,32 @@ function getRatioAssessment(ratios) {
   });
 }
 
+// --- Red flag rule engine (Day 6) — docs/API.md getRedFlags() ---
+// Each rule only fires when its underlying field has real data (never flags a null as a concern).
+
+function getRedFlags(stock) {
+  const flags = [];
+  const r = stock.ratios || {};
+
+  if (r.peRatio !== null && r.peRatio !== undefined && r.peRatio > 40) {
+    flags.push(`P/E ratio (${formatPlain(r.peRatio, 1)}) is notably higher than typical — the market may be pricing in a lot of future growth, which carries risk if growth slows.`);
+  }
+
+  if (r.debtToEquity !== null && r.debtToEquity !== undefined && r.debtToEquity > 1.5) {
+    flags.push(`Debt-to-Equity (${formatPlain(r.debtToEquity, 2)}) is high — the company relies significantly on borrowed money, which increases financial risk.`);
+  }
+
+  if (r.dividendYield !== null && r.dividendYield !== undefined && r.dividendYield === 0) {
+    flags.push(`This company currently pays no dividend — fine for growth-focused investors, but worth knowing if you're seeking income.`);
+  }
+
+  if (r.eps !== null && r.eps !== undefined && r.eps < 5) {
+    flags.push(`EPS (₹${formatPlain(r.eps, 2)}) is relatively low — profit generated per share is modest compared to many established companies.`);
+  }
+
+  return flags;
+}
+
 // --- Snapshot rendering (Day 4) ---
 
 function renderSnapshot(stock) {
@@ -206,6 +232,30 @@ function renderRatios(ratios) {
   `;
 }
 
+// --- Red Flags rendering (Day 6) ---
+
+function renderRedFlags(stock) {
+  const flags = getRedFlags(stock);
+
+  if (flags.length === 0) {
+    return `
+      <div class="flags-card flags-card-clear">
+        <h3 class="section-title">Red Flags</h3>
+        <p class="flags-clear-message">✓ No major red flags detected</p>
+      </div>
+    `;
+  }
+
+  const itemsHtml = flags.map((flag) => `<li class="flag-item">${escapeHtml(flag)}</li>`).join('');
+
+  return `
+    <div class="flags-card flags-card-warning">
+      <h3 class="section-title">Red Flags</h3>
+      <ul class="flags-list">${itemsHtml}</ul>
+    </div>
+  `;
+}
+
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
   const div = document.createElement('div');
@@ -230,8 +280,7 @@ async function handleSearch() {
     } else if (reason === 'not_found') {
       resultsDiv.innerHTML = '<p class="error-message">Couldn\'t find that stock — check the spelling or try a different ticker (e.g. TCS, INFY, RELIANCE).</p>';
     } else {
-      resultsDiv.innerHTML = renderSnapshot(result) + renderRatios(result.ratios);
-      // Red Flags section arrives Day 6 — intentionally not rendered yet.
+      resultsDiv.innerHTML = renderSnapshot(result) + renderRatios(result.ratios) + renderRedFlags(result);
     }
   } catch (err) {
     console.error(err);
